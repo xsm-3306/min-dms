@@ -10,6 +10,7 @@ import (
 
 var Con_pool *sql.DB
 
+//使用golang原生sql包，初始话数据库连接
 func InitDb() {
 	var err error
 	db_str := "dms:d_m3123445@tcp(192.168.19.39:3306)/dms"

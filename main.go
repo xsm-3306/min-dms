@@ -12,7 +12,7 @@ func main() {
 
 	engine := gin.Default()
 	engine.POST("/sqlhandler", func(ctx *gin.Context) {
-		userhandler.Sqlhandler(ctx)
+		userhandler.SqlHandler(ctx)
 	})
 	engine.Run(":8081")
 }
