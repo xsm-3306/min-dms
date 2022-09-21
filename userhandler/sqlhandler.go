@@ -1,8 +1,8 @@
 package userhandler
 
 import (
-	"log"
 	"min-dms/common"
+	"min-dms/service"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -22,28 +22,20 @@ func SqlHandler(ctx *gin.Context) {
 		})
 		return
 	}
-	//对传进来的SQL进行一系列的验证
 
-	n := common.SqlStatementSingleVerify(sql_str)
-	if n > 5 {
-		ctx.JSON(http.StatusNotAcceptable, gin.H{
-			"msg": "不允许一次性超过10条SQL",
+	//用户验证通过后，流程进入分析器sqlAnalyzer
+	n, reason, isChecked := service.SqlAnalyzer(sql_str)
+	if !isChecked {
+		ctx.JSON(http.StatusMethodNotAllowed, gin.H{
+			"msg":    "检测不通过",
+			"位置":     n,
+			"reason": reason,
 		})
-		return
-	}
-
-	sql_type, err := common.SqlTypeVerify(sql_str)
-	if err != nil {
-		ctx.JSON(http.StatusNotAcceptable, gin.H{
-			"msg": "非允许的SQL类型",
-		})
-		log.Println(err)
 		return
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{
 		"sql":      sql_str,
 		"username": username,
-		"sql_type": sql_type,
 	})
 }

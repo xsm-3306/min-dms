@@ -1,17 +1,17 @@
 package main
 
 import (
-	common "min-dms/common"
+	"min-dms/dao"
 	userhandler "min-dms/userhandler"
 
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
-	common.InitDb()
+	dao.InitDb()
 
 	engine := gin.Default()
-	engine.POST("/sqlhandler", func(ctx *gin.Context) {
+	engine.POST("/api/sqlhandler", func(ctx *gin.Context) {
 		userhandler.SqlHandler(ctx)
 	})
 	engine.Run(":8081")
