@@ -1,12 +1,16 @@
 package config
 
-type DbConfig struct {
-	Host     string
-	Port     int
-	Db_name  string
-	User     string
-	Password string
-}
+//dms系统db配置
+var (
+	DmsDbUrl      string
+	DbName        string
+	DmsDbUser     string
+	DmsDbPassword string
+)
 
-//dms系统业业务数据库配置
-var DmsConfig DbConfig
+func InitConfig() {
+	DmsDbUrl = "192.168.19.39:3306"
+	DbName = "dms"
+	DmsDbUser = "dms"
+	DmsDbPassword = "d_m3123445"
+}

@@ -2,10 +2,6 @@ package dao
 
 import (
 	"database/sql"
-	"fmt"
-	"log"
-	"min-dms/config"
-	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -15,9 +11,10 @@ type Db struct {
 	Con_pool *sql.DB
 }
 
+/*
 func (db *Db) Init() {
 	db.Dbstring = fmt.Sprintf("%s:%s@%s/%s", config.User, config.Password, config.Host, config.Db_name)
-}
+}*/
 
 func (db *Db) Open() error {
 	if db.Con_pool != nil {
@@ -30,6 +27,7 @@ func (db *Db) Open() error {
 
 var Con_pool *sql.DB
 
+/*
 //使用golang原生sql包，初始话数据库连接
 //此处initdb初始话为dms系统的业务配置库
 func InitDb() {
@@ -49,3 +47,6 @@ func InitDb() {
 	Con_pool.SetMaxIdleConns(4)
 	Con_pool.SetMaxOpenConns(8)
 }
+
+
+*/

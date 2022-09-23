@@ -16,11 +16,8 @@ var SqlLengthLimit = 1000
 //对于多条sql同时执行的情况，模式可以稍作调整
 var SqlExplainScanRowsLimit = 10000
 
-//数据库连接串配置struct
-type DbConfig struct {
-	Host     string
-	Port     int
-	Db_name  string
-	User     string
-	Password string
+//user struct
+type User struct {
+	Userid   int
+	Username string
 }
