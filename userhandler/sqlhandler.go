@@ -1,6 +1,8 @@
 package userhandler
 
 import (
+	"min-dms/common"
+	"min-dms/model"
 	"min-dms/response"
 	"min-dms/service"
 	"net/http"
@@ -19,16 +21,9 @@ func (uh *Userhandler) SqlHandler(ctx *gin.Context) {
 	username := ctx.PostForm("username")
 
 	//此模块后期可以再加入JWT，传token，解析后再验证token中的用户
-	/*isuserexists := common.CheckUserStatus(username)
-	if !isuserexists {
-		ctx.JSON(http.StatusNotAcceptable, gin.H{
-			"msg": "用户不在白名单内",
-		})
-		return
-	}*/
 	userid, err := uh.UserService.GetUseridByUsername(username)
 	if err != nil || userid < 1 {
-		msg := "无权限"
+		msg := "用户无权限"
 		data := gin.H{}
 		response.Failed(ctx, data, msg)
 		return
@@ -39,10 +34,27 @@ func (uh *Userhandler) SqlHandler(ctx *gin.Context) {
 	if !isChecked {
 		ctx.JSON(http.StatusMethodNotAllowed, gin.H{
 			"msg":    "检测不通过",
-			"位置":     n,
+			"第几行":    n,
 			"reason": reason,
 		})
 		return
+	}
+
+	//explain 扫描行数检测；先拆分，再逐一检测，任何一个不符合规定，返回
+	sqlmap := common.SqlStatementSplit(sql_str)
+	for i := 1; i <= len(sqlmap); i++ {
+		scanRows, err := uh.UserService.CheckSqlExplainScanRows(sqlmap[i])
+		if err != nil || scanRows > model.SqlExplainScanRowsLimit {
+			msg := "扫描行数检测失败"
+			data := gin.H{
+				"位置,第几行": i,
+				"扫描行数":   scanRows,
+				"error":  err,
+			}
+			response.Failed(ctx, data, msg)
+			ctx.Abort()
+			return
+		}
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{

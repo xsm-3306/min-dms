@@ -18,7 +18,7 @@ type Database struct {
 //初始化数据库连接串
 func (db *Database) InitDbSource() {
 
-	db.DatabaseSource = fmt.Sprintf("%s:%s@%s/%s", config.DmsDbUser, config.DmsDbPassword, config.DmsDbUrl, config.DbName)
+	db.DatabaseSource = fmt.Sprintf("%s:%s@tcp(%s)/%s", config.DmsDbUser, config.DmsDbPassword, config.DmsDbUrl, config.DbName)
 	log.Println(db.DatabaseSource)
 }
 
@@ -80,9 +80,16 @@ func (db *Database) GetRows(sqlstr string, vals ...interface{}) (result []map[st
 				} else {
 					rowResult[key] = string(raw)
 				}
-				result = append(result, rowResult)
+				//result = append(result, rowResult)
+				//log.Println(result)
 			}
+			result = append(result, rowResult)
+			log.Println(result)
+
+		} else {
+			return nil, err
 		}
+
 	}
 
 	return
