@@ -30,7 +30,7 @@ func (db *Database) CheckSqlExplainScanRows(sql string) (scanRows int, err error
 
 	result, err := db.GetRows(sql_str)
 	log.Println(sql_str)
-	if err == nil {
+	if err == nil { //explain的逻辑考虑按SQLtype重写
 
 		for i := 0; i < len(result); i++ {
 			//log.Println(len(result), scanRows)

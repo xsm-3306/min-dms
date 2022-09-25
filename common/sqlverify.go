@@ -6,18 +6,18 @@ import (
 	"strings"
 )
 
-//Sqltypeverify 检查sql type，并且保证只能是delete update insert中的一种
-func SqlTypeVerify(sql string) error {
+//Sqltypeverify 检查sql type，确保只能是delete update insert中的一种，并且返回sqltype
+func SqlTypeVerify(sql string) (sqlType string, err error) {
 
 	//去除头尾的空格,默认前六个字符为sql_type(只能为insert,delete,update)
 	sql_str := strings.TrimSpace(sql)
-	sql_type := sql_str[0:6]
-	if sql_type == "insert" || sql_type == "delete" || sql_type == "update" {
+	sqlType = sql_str[0:6]
+	if sqlType == "insert" || sqlType == "delete" || sqlType == "update" {
 		//log.Println("验证的sql是：", sql)
-		return nil
+		return sqlType, nil
 	} else {
 		err := errors.New("非允许的SQL类型")
-		return err
+		return "", err
 	}
 }
 

@@ -12,7 +12,7 @@ func SqlAnalyzer(sql string) (int, string, bool) {
 	for i := 1; i <= len(sqlMap); i++ {
 		//log.Println(i, sqlMap[i])
 		//验证sql type类型
-		err := common.SqlTypeVerify(sqlMap[i])
+		_, err := common.SqlTypeVerify(sqlMap[i])
 		if err != nil {
 			reason := "不允许的sql类型"
 			return i, reason, false

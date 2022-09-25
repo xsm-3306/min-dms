@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"min-dms/common"
 	"min-dms/config"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -40,7 +41,7 @@ func (db *Database) CloseDb() {
 	db.Db_con = nil
 }
 
-//Mysql struct实现一个SqlQuery功能，返回结果存在数组里，每个元素是map[string]string
+//实现一个SqlQuery功能，返回结果存在数组里，每个元素是map[string]string
 func (db *Database) GetRows(sqlstr string, vals ...interface{}) (result []map[string]string, err error) {
 	db.OpenDb()
 	defer db.CloseDb()
@@ -91,6 +92,52 @@ func (db *Database) GetRows(sqlstr string, vals ...interface{}) (result []map[st
 		}
 
 	}
+
+	return
+}
+
+//执行非SELECT sql，并返回受影响的数据行数()
+func (db *Database) ExecSql(sqlstr string) (resultRows map[string]int64, err1 error, err2 error) {
+	db.OpenDb()
+	defer db.CloseDb()
+	sqltype, _ := common.SqlTypeVerify(sqlstr)
+
+	var (
+		insertRows int64
+		deleteRows int64
+		updateRows int64
+	)
+
+	stmt, err1 := db.Db_con.Prepare(sqlstr)
+	if err1 != nil {
+		return nil, err1, nil
+	}
+	defer stmt.Close()
+
+	result, err1 := stmt.Exec()
+	if err1 != nil {
+		return nil, err1, nil
+	}
+	switch sqltype {
+	case "insert": //判断类型，返回结果
+		insertRows, err2 = result.LastInsertId()
+		if err2 != nil {
+			return nil, nil, err2
+		}
+	case "update":
+		updateRows, err2 = result.RowsAffected()
+		if err2 != nil {
+			return nil, nil, err2
+		}
+	case "delete":
+		deleteRows, err2 = result.RowsAffected()
+		if err2 != nil {
+			return nil, nil, err2
+		}
+	}
+	resultRows["insertRows"] = insertRows
+	resultRows["deleteRows"] = deleteRows
+	resultRows["updateRows"] = updateRows
 
 	return
 }

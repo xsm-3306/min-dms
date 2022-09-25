@@ -9,7 +9,7 @@ import (
 //response封装统一的返回格式
 
 func Response(ctx *gin.Context, httpStatus int, code int, data gin.H, msg string) {
-	ctx.JSON(httpStatus, gin.H{"code": code, "data": data, "msg": msg})
+	ctx.JSON(httpStatus, gin.H{"code": code, "msg": msg, "data": data})
 }
 
 //成功httpstatus返回200，code返回200
