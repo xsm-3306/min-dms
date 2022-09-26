@@ -1,7 +1,6 @@
 package dao
 
 import (
-	"log"
 	"min-dms/common"
 	"strconv"
 )
@@ -31,7 +30,6 @@ func (db *Database) CheckSqlExplainScanRows(sql string) (scanRows int, err error
 	sqltype, _ := common.SqlTypeVerify(sql)
 
 	result, err := db.GetRows(sqlstr)
-	log.Println(sqlstr)
 
 	if err == nil { //explain结果根据sqltype分别处理
 		switch sqltype {

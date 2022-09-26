@@ -20,3 +20,14 @@
 3.原纪录及回退SQL放在单个回退文件中
 4.每次执行都当成一个服务层面的事务，生成一个回退文件
 5.以table_name,db_name及当前的unixtime生成一个回退 recovery_id，回退ID可作为回退文件的表名
+filewriter+map2json
+
+四.关于回退原理细节
+1.delete，先转换成select拉取原数据；再根据逻辑转成insert
+
+2.update,
+
+3.insert：
+a.insert into() values()(),可根据values中的条件反查主键，在生成delete
+b.insert into select * *,可根据select的条件语句，反差主键，生成delete
+c.

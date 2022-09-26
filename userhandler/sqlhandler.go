@@ -1,10 +1,12 @@
 package userhandler
 
 import (
+	"log"
 	"min-dms/common"
 	"min-dms/model"
 	"min-dms/response"
 	"min-dms/service"
+	"min-dms/utils"
 
 	"github.com/gin-gonic/gin"
 )
@@ -31,7 +33,7 @@ func (uh *Userhandler) SqlHandler(ctx *gin.Context) {
 	//用户验证通过后，流程进入分析器sqlAnalyzer
 	n, reason, isChecked := service.SqlAnalyzer(sql_str)
 	if !isChecked {
-		msg := "在执行前的分析阶段，sql检测不通过"
+		msg := "sql语句检测失败"
 		data := gin.H{
 			"reason": reason,
 			"第几行":    n,
@@ -44,13 +46,14 @@ func (uh *Userhandler) SqlHandler(ctx *gin.Context) {
 	//explain 扫描行数检测；先拆分，再逐一检测，任何一个不符合规定，返回
 	sqlmap := common.SqlStatementSplit(sql_str)
 	for i := 1; i <= len(sqlmap); i++ {
+
 		scanRows, err := uh.UserService.CheckSqlExplainScanRows(sqlmap[i])
 		if err != nil || scanRows > model.SqlExplainScanRowsLimit {
-			msg := "扫描行数检测失败"
+			msg := "扫描检测失败"
 			data := gin.H{
-				"位置,第几行": i,
-				"扫描行数":   scanRows,
-				"error":  err,
+				"sql位置,第几行": i,
+				"扫描行数":      scanRows,
+				"error":     err,
 			}
 			response.Failed(ctx, data, msg)
 			ctx.Abort()
@@ -71,6 +74,7 @@ func (uh *Userhandler) SqlHandler(ctx *gin.Context) {
 			rowsUpdated = int(resultRows["updateRows"]) + rowsUpdated
 			rowsDeleted = int(resultRows["deleteRows"]) + rowsDeleted
 			rowsInserted = int(resultRows["insertRows"]) + rowsInserted
+			log.Printf("############第%v条sql执行成功########%v\n", i, sqlmap[i])
 		} else {
 			//执行到任意行失败，则返回，并返回已经修改的行数，和错误信息
 			msg := "执行中断"
@@ -95,6 +99,12 @@ func (uh *Userhandler) SqlHandler(ctx *gin.Context) {
 		"rowsUpdated":  rowsUpdated,
 	}
 	response.Success(ctx, data, msg)
+
+	s := make(map[string]string)
+	s["城市"] = "南昌"
+	s["国家"] = "中国"
+	js := utils.Map2Json(s)
+	log.Println(js)
 
 	ctx.Abort()
 }

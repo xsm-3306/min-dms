@@ -85,7 +85,7 @@ func (db *Database) GetRows(sqlstr string, vals ...interface{}) (result []map[st
 				//log.Println(result)
 			}
 			result = append(result, rowResult)
-			log.Println(result)
+			//log.Println(result)
 
 		} else {
 			return nil, err
