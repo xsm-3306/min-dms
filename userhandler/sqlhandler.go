@@ -5,7 +5,6 @@ import (
 	"min-dms/model"
 	"min-dms/response"
 	"min-dms/service"
-	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
@@ -60,35 +59,42 @@ func (uh *Userhandler) SqlHandler(ctx *gin.Context) {
 	}
 
 	/*检测通过之后，sql执行阶段；*/
-	/*此处对于一系列传入的SQL并没有使用事物*/
+	/*此处对于一系列传入的SQL并没有使用事物,视每条sql间没有事务依赖关系*/
+	var (
+		rowsInserted int
+		rowsUpdated  int
+		rowsDeleted  int
+	)
 	for i := 1; i <= len(sqlmap); i++ {
-		resultRows, err1, err2 := uh.UserService.ExecSqlAndGetRownum(sqlmap[i])
-		if err1 != nil {
-			msg := "执行失败"
+		resultRows, err := uh.UserService.ExecSqlAndGetRownum(sqlmap[i])
+		if err == nil {
+			rowsUpdated = int(resultRows["updateRows"]) + rowsUpdated
+			rowsDeleted = int(resultRows["deleteRows"]) + rowsDeleted
+			rowsInserted = int(resultRows["insertRows"]) + rowsInserted
+		} else {
+			//执行到任意行失败，则返回，并返回已经修改的行数，和错误信息
+			msg := "执行中断"
 			data := gin.H{
-				"sql位置,第几行":  i,
-				"error1":     err1,
-				"resultRows": resultRows,
-				"error2":     err2,
+				"sql位置,第几行":    i,
+				"error":        err,
+				"rowsInserted": rowsInserted,
+				"rowsDeleted":  rowsDeleted,
+				"rowsUpdated":  rowsUpdated,
 			}
 			response.Failed(ctx, data, msg)
 			ctx.Abort()
 			return
-		} else {
-			msg := "执行成功"
-			data := gin.H{
-				"sql总数":      i,
-				"error1":     err1,
-				"resultRows": resultRows,
-				"error2":     err2,
-			}
-			response.Success(ctx, data, msg)
 		}
 	}
+	//执行完成后在外层调用response.success统一返回
+	msg := "执行成功"
+	data := gin.H{
+		"sql总数":        len(sqlmap),
+		"rowsInserted": rowsInserted,
+		"rowsDeleted":  rowsDeleted,
+		"rowsUpdated":  rowsUpdated,
+	}
+	response.Success(ctx, data, msg)
 
-	ctx.JSON(http.StatusOK, gin.H{
-
-		"username": username,
-	})
 	ctx.Abort()
 }

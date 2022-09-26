@@ -2,6 +2,7 @@ package dao
 
 import (
 	"log"
+	"min-dms/common"
 	"strconv"
 )
 
@@ -25,24 +26,49 @@ func (db *Database) GetUseridByUsername(username string) (userid int, err error)
 
 //检查sql explain时扫描的行数
 func (db *Database) CheckSqlExplainScanRows(sql string) (scanRows int, err error) {
-	sql_str := "explain " + sql
+	sqlstr := "explain " + sql
 	scanRows = 1
+	sqltype, _ := common.SqlTypeVerify(sql)
 
-	result, err := db.GetRows(sql_str)
-	log.Println(sql_str)
-	if err == nil { //explain的逻辑考虑按SQLtype重写
+	result, err := db.GetRows(sqlstr)
+	log.Println(sqlstr)
 
-		for i := 0; i < len(result); i++ {
-			//log.Println(len(result), scanRows)
-			//log.Println(result[i])
-			rows, err := strconv.Atoi(result[i]["rows"]) //取结果集中rows的值
-			if err == nil {
-				scanRows = scanRows * rows
-			} else {
-				return 0, err
+	if err == nil { //explain结果根据sqltype分别处理
+		switch sqltype {
+		case "insert": //insert 类型对于null_val需要单独处理
+			for i := 0; i < len(result); i++ {
+				if result[i]["rows"] == "null_val" {
+					rows := 1
+					scanRows = scanRows * rows
+				} else {
+					rows, err := strconv.Atoi(result[i]["rows"]) //取扫描行数
+					if err == nil {
+						scanRows = scanRows * rows
+					} else {
+						return 0, err
+					}
+				}
 			}
-
+		case "delete":
+			for i := 0; i < len(result); i++ {
+				rows, err := strconv.Atoi(result[i]["rows"]) //取扫描行数
+				if err == nil {
+					scanRows = scanRows * rows
+				} else {
+					return 0, err
+				}
+			}
+		case "updaet":
+			for i := 0; i < len(result); i++ {
+				rows, err := strconv.Atoi(result[i]["rows"]) //取扫描行数
+				if err == nil {
+					scanRows = scanRows * rows
+				} else {
+					return 0, err
+				}
+			}
 		}
+
 	}
 	return
 }

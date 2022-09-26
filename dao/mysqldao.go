@@ -97,42 +97,49 @@ func (db *Database) GetRows(sqlstr string, vals ...interface{}) (result []map[st
 }
 
 //执行非SELECT sql，并返回受影响的数据行数()
-func (db *Database) ExecSql(sqlstr string) (resultRows map[string]int64, err1 error, err2 error) {
+func (db *Database) ExecSql(sqlstr string) (resultRows map[string]int64, err error) {
 	db.OpenDb()
 	defer db.CloseDb()
+
+	resultRows = make(map[string]int64)
+
 	sqltype, _ := common.SqlTypeVerify(sqlstr)
 
 	var (
 		insertRows int64
 		deleteRows int64
 		updateRows int64
+		err1       error
 	)
 
-	stmt, err1 := db.Db_con.Prepare(sqlstr)
-	if err1 != nil {
-		return nil, err1, nil
+	stmt, err := db.Db_con.Prepare(sqlstr)
+	if err != nil {
+		return nil, err
 	}
 	defer stmt.Close()
 
-	result, err1 := stmt.Exec()
-	if err1 != nil {
-		return nil, err1, nil
+	result, err := stmt.Exec()
+	if err != nil {
+		return nil, err
 	}
 	switch sqltype {
-	case "insert": //判断类型，返回结果
-		insertRows, err2 = result.LastInsertId()
-		if err2 != nil {
-			return nil, nil, err2
+	case "insert": //判断类型，返回结果。此时sql已经执行成功，没有返回错误；所以即使err1,也只是获取结果失败，并不影响进程，把err1打印到日志里
+		insertRows, err1 = result.RowsAffected()
+		if err1 != nil {
+			log.Println(err1)
+			return nil, nil
 		}
 	case "update":
-		updateRows, err2 = result.RowsAffected()
-		if err2 != nil {
-			return nil, nil, err2
+		updateRows, err1 = result.RowsAffected()
+		if err1 != nil {
+			log.Println(err1)
+			return nil, nil
 		}
 	case "delete":
-		deleteRows, err2 = result.RowsAffected()
-		if err2 != nil {
-			return nil, nil, err2
+		deleteRows, err1 = result.RowsAffected()
+		if err1 != nil {
+			log.Println(err1)
+			return nil, nil
 		}
 	}
 	resultRows["insertRows"] = insertRows
