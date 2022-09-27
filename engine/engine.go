@@ -16,7 +16,9 @@ var (
 
 func InitHandler() {
 	db := &dao.Database{}
-	db.InitDbSource()
+	dbNum := "db0" //本系统业务库放在db0,所以初始话的时候，先默认给志db0
+	dbName := "dms"
+	db.InitDbSource(dbNum, dbName)
 	us = service.UserService{Db: db}
 	uh = userhandler.Userhandler{UserService: us}
 

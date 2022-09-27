@@ -17,10 +17,16 @@ type Database struct {
 }
 
 //初始化数据库连接串
-func (db *Database) InitDbSource() {
-
-	db.DatabaseSource = fmt.Sprintf("%s:%s@tcp(%s)/%s", config.DmsDbUser, config.DmsDbPassword, config.DmsDbUrl, config.DbName)
+func (db *Database) InitDbSource(dbNum string, dbName string) {
+	var dbstr config.DbString
+	dbstr.UnmarshalDbString(dbNum)
+	dbstr.Dbname = dbName
+	db.DatabaseSource = fmt.Sprintf("%s:%s@tcp(%s:%v)/%s", dbstr.Dbname, dbstr.Password, dbstr.Host, dbstr.Port, dbstr.Dbname)
 	log.Println(db.DatabaseSource)
+}
+
+func (db *Database) NewDb() *Database {
+	return db
 }
 
 //初始化mysql数据库连接

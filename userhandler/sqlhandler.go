@@ -6,7 +6,6 @@ import (
 	"min-dms/model"
 	"min-dms/response"
 	"min-dms/service"
-	"min-dms/utils"
 
 	"github.com/gin-gonic/gin"
 )
@@ -74,7 +73,7 @@ func (uh *Userhandler) SqlHandler(ctx *gin.Context) {
 			rowsUpdated = int(resultRows["updateRows"]) + rowsUpdated
 			rowsDeleted = int(resultRows["deleteRows"]) + rowsDeleted
 			rowsInserted = int(resultRows["insertRows"]) + rowsInserted
-			log.Printf("############第%v条sql执行成功########%v\n", i, sqlmap[i])
+			log.Printf("###第%v条sql执行成功###%v插入行数:%v,更新行数:%v,删除行数:%v\n", i, sqlmap[i], rowsInserted, rowsUpdated, rowsDeleted)
 		} else {
 			//执行到任意行失败，则返回，并返回已经修改的行数，和错误信息
 			msg := "执行中断"
@@ -85,6 +84,7 @@ func (uh *Userhandler) SqlHandler(ctx *gin.Context) {
 				"rowsDeleted":  rowsDeleted,
 				"rowsUpdated":  rowsUpdated,
 			}
+			log.Printf("###%v执行失败###\n", sqlmap[i])
 			response.Failed(ctx, data, msg)
 			ctx.Abort()
 			return
@@ -99,12 +99,6 @@ func (uh *Userhandler) SqlHandler(ctx *gin.Context) {
 		"rowsUpdated":  rowsUpdated,
 	}
 	response.Success(ctx, data, msg)
-
-	s := make(map[string]string)
-	s["城市"] = "南昌"
-	s["国家"] = "中国"
-	js := utils.Map2Json(s)
-	log.Println(js)
 
 	ctx.Abort()
 }

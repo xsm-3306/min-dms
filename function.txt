@@ -27,6 +27,7 @@ filewriter+map2json
 
 2.update,
 
+
 3.insert：
 a.insert into() values()(),可根据values中的条件反查主键，在生成delete
 b.insert into select * *,可根据select的条件语句，反差主键，生成delete

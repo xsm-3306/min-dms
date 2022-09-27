@@ -1,0 +1,5 @@
+## ignore config file
+*.ymal
+
+//some txt file
+*.txt
