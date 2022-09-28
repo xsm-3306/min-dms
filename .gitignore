@@ -1,5 +1,5 @@
 ## ignore config file
-/config/*.ymal
+/config/*.yaml
 
 //some txt file
 *.txt
