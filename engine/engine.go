@@ -30,4 +30,5 @@ func InitEngine(engine *gin.Engine) {
 	InitHandler()
 
 	engine.POST("/api/sqlhandler", uh.SqlHandler)
+	engine.POST("/api/getdblist", uh.GetDbList)
 }

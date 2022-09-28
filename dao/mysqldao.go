@@ -20,10 +20,10 @@ type Database struct {
 func (db *Database) InitDbSource(dbNum string, dbName string) {
 	var dbstr config.DbString
 	dbstr.UnmarshalDbString(dbNum)
-	log.Println(dbstr)
+	//log.Println(dbstr)
 	dbstr.Dbname = dbName
 	db.DatabaseSource = fmt.Sprintf("%s:%s@tcp(%s:%v)/%s", dbstr.Username, dbstr.Password, dbstr.Host, dbstr.Port, dbstr.Dbname)
-	log.Println("initdbsource:", db.DatabaseSource)
+	//log.Println("initdbsource:", db.DatabaseSource)
 }
 
 func (db *Database) NewDb(dbNum string, dbName string) *Database {
@@ -54,7 +54,7 @@ func (db *Database) CloseDb() {
 
 //实现一个SqlQuery功能，返回结果存在数组里，每个元素是map[string]string
 func (db *Database) GetRows(sqlstr string, vals ...interface{}) (result []map[string]string, err error) {
-	log.Println("before opendb:", db)
+	//log.Println("before opendb:", db)
 	db.OpenDb()
 	defer db.CloseDb()
 	var rows *sql.Rows

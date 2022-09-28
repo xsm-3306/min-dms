@@ -3,6 +3,7 @@ package config
 import (
 	"log"
 
+	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/viper"
 )
 
@@ -32,10 +33,13 @@ func InitConfig() {
 
 	viper.SetConfigFile("./config/dbconfig.yaml")
 	err := viper.ReadInConfig()
-
 	if err != nil {
-		log.Panicln("读取config配置问价出错", err)
+		log.Panicln("读取config配置文件出错", err)
 	}
+	viper.WatchConfig()
+	viper.OnConfigChange(func(in fsnotify.Event) {
+		log.Println("检测到配置文件变更：", in.Name)
+	})
 
 }
 
