@@ -3,6 +3,7 @@ package userhandler
 import (
 	"log"
 	"min-dms/common"
+	"min-dms/dao"
 	"min-dms/model"
 	"min-dms/response"
 	"min-dms/service"
@@ -19,6 +20,8 @@ func (uh *Userhandler) SqlHandler(ctx *gin.Context) {
 	//postform接收string
 	sql_str := ctx.PostForm("sql")
 	username := ctx.PostForm("username")
+	dbnum := ctx.PostForm("dbnum")
+	dbname := ctx.PostForm("dbname")
 
 	//此模块后期可以再加入JWT，传token，解析后再验证token中的用户
 	userid, err := uh.UserService.GetUseridByUsername(username)
@@ -42,11 +45,16 @@ func (uh *Userhandler) SqlHandler(ctx *gin.Context) {
 		return
 	}
 
+	//根据传递数据，dbname dbnum,初始化新的数据库连接来执行相关的操作
+	newdb := new(dao.Database).NewDb(dbnum, dbname)
+	newUs := service.UserService{Db: newdb}
+	newUh := Userhandler{UserService: newUs}
+
 	//explain 扫描行数检测；先拆分，再逐一检测，任何一个不符合规定，返回
 	sqlmap := common.SqlStatementSplit(sql_str)
 	for i := 1; i <= len(sqlmap); i++ {
 
-		scanRows, err := uh.UserService.CheckSqlExplainScanRows(sqlmap[i])
+		scanRows, err := newUh.UserService.CheckSqlExplainScanRows(sqlmap[i])
 		if err != nil || scanRows > model.SqlExplainScanRowsLimit {
 			msg := "扫描检测失败"
 			data := gin.H{
@@ -68,7 +76,7 @@ func (uh *Userhandler) SqlHandler(ctx *gin.Context) {
 		rowsDeleted  int
 	)
 	for i := 1; i <= len(sqlmap); i++ {
-		resultRows, err := uh.UserService.ExecSqlAndGetRownum(sqlmap[i])
+		resultRows, err := newUh.UserService.ExecSqlAndGetRownum(sqlmap[i])
 		if err == nil {
 			rowsUpdated = int(resultRows["updateRows"]) + rowsUpdated
 			rowsDeleted = int(resultRows["deleteRows"]) + rowsDeleted

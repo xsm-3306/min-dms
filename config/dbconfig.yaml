@@ -4,13 +4,7 @@ db0:
   username: dms
   password: d_m3123445
 
-db1:
-  host: 192.168.19.29
-  port: 3306
-  username: dms
-  password: d_m3123445
-
-db2:
+test:
   host: 192.168.19.28
   port: 3306
   username: dms

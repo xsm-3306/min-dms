@@ -20,23 +20,28 @@ type Database struct {
 func (db *Database) InitDbSource(dbNum string, dbName string) {
 	var dbstr config.DbString
 	dbstr.UnmarshalDbString(dbNum)
+	log.Println(dbstr)
 	dbstr.Dbname = dbName
-	db.DatabaseSource = fmt.Sprintf("%s:%s@tcp(%s:%v)/%s", dbstr.Dbname, dbstr.Password, dbstr.Host, dbstr.Port, dbstr.Dbname)
-	log.Println(db.DatabaseSource)
+	db.DatabaseSource = fmt.Sprintf("%s:%s@tcp(%s:%v)/%s", dbstr.Username, dbstr.Password, dbstr.Host, dbstr.Port, dbstr.Dbname)
+	log.Println("initdbsource:", db.DatabaseSource)
 }
 
-func (db *Database) NewDb() *Database {
-	return db
+func (db *Database) NewDb(dbNum string, dbName string) *Database {
+	var newdb = new(Database)
+	newdb.InitDbSource(dbNum, dbName)
+	return newdb
 }
 
 //初始化mysql数据库连接
-func (db *Database) OpenDb() (err error) {
+func (db *Database) OpenDb() error {
+
 	if db.Db_con != nil {
 		return nil
 	}
+	var err error
 	db.Db_con, err = sql.Open("mysql", db.DatabaseSource)
 
-	return
+	return err
 }
 
 //close db连接
@@ -49,6 +54,7 @@ func (db *Database) CloseDb() {
 
 //实现一个SqlQuery功能，返回结果存在数组里，每个元素是map[string]string
 func (db *Database) GetRows(sqlstr string, vals ...interface{}) (result []map[string]string, err error) {
+	log.Println("before opendb:", db)
 	db.OpenDb()
 	defer db.CloseDb()
 	var rows *sql.Rows

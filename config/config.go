@@ -44,6 +44,5 @@ func (dbstr *DbString) UnmarshalDbString(dbNum string) (err error) {
 	if err = viper.UnmarshalKey(dbNum, &dbstr); err != nil {
 		log.Panicln("config到struct解组失败", err)
 	}
-
 	return
 }
