@@ -3,6 +3,7 @@ package engine
 import (
 	"min-dms/config"
 	"min-dms/dao"
+	"min-dms/middleware"
 	"min-dms/service"
 	"min-dms/userhandler"
 
@@ -29,6 +30,7 @@ func InitEngine(engine *gin.Engine) {
 
 	InitHandler()
 
+	engine.Use(middleware.CrosMiddle())
 	engine.POST("/api/sqlhandler", uh.SqlHandler)
 	engine.POST("/api/getdblist", uh.GetDbList)
 }

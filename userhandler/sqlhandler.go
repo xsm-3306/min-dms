@@ -22,6 +22,7 @@ func (uh *Userhandler) SqlHandler(ctx *gin.Context) {
 	username := ctx.PostForm("username")
 	dbnum := ctx.PostForm("dbnum")
 	dbname := ctx.PostForm("dbname")
+	log.Println(username, sql_str, dbname, dbnum)
 
 	//此模块后期可以再加入JWT，传token，解析后再验证token中的用户
 	userid, err := uh.UserService.GetUseridByUsername(username)
@@ -38,7 +39,7 @@ func (uh *Userhandler) SqlHandler(ctx *gin.Context) {
 		msg := "sql语句检测失败"
 		data := gin.H{
 			"reason": reason,
-			"第几行":    n,
+			"rownum": n,
 		}
 		response.Failed(ctx, data, msg)
 		ctx.Abort()
@@ -58,9 +59,9 @@ func (uh *Userhandler) SqlHandler(ctx *gin.Context) {
 		if err != nil || scanRows > model.SqlExplainScanRowsLimit {
 			msg := "扫描检测失败"
 			data := gin.H{
-				"sql位置,第几行": i,
-				"扫描行数":      scanRows,
-				"error":     err,
+				"rownum":   i,
+				"scanrows": scanRows,
+				"error":    err,
 			}
 			response.Failed(ctx, data, msg)
 			ctx.Abort()
@@ -86,7 +87,7 @@ func (uh *Userhandler) SqlHandler(ctx *gin.Context) {
 			//执行到任意行失败，则返回，并返回已经修改的行数，和错误信息
 			msg := "执行中断"
 			data := gin.H{
-				"sql位置,第几行":    i,
+				"rownum":       i,
 				"error":        err,
 				"rowsInserted": rowsInserted,
 				"rowsDeleted":  rowsDeleted,
@@ -101,7 +102,7 @@ func (uh *Userhandler) SqlHandler(ctx *gin.Context) {
 	//执行完成后在外层调用response.success统一返回
 	msg := "执行成功"
 	data := gin.H{
-		"sql总数":        len(sqlmap),
+		"rownum":       len(sqlmap),
 		"rowsInserted": rowsInserted,
 		"rowsDeleted":  rowsDeleted,
 		"rowsUpdated":  rowsUpdated,
