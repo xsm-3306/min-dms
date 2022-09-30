@@ -13,3 +13,7 @@ func (us *UserService) GetUseridByUsername(username string) (userid int, err err
 func (us *UserService) CheckSqlExplainScanRows(sql string) (scanRows int, err error) {
 	return us.Db.CheckSqlExplainScanRows(sql)
 }
+
+func (us *UserService) GetDbList() (dbList string, err error) {
+	return us.Db.GetDbList()
+}

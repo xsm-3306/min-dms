@@ -32,5 +32,6 @@ func InitEngine(engine *gin.Engine) {
 
 	engine.Use(middleware.CrosMiddle())
 	engine.POST("/api/sqlhandler", uh.SqlHandler)
+	engine.POST("/api/getdbinstancelist", uh.GetDbInstanceList)
 	engine.POST("/api/getdblist", uh.GetDbList)
 }

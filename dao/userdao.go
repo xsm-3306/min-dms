@@ -1,6 +1,7 @@
 package dao
 
 import (
+	"log"
 	"min-dms/common"
 	"strconv"
 )
@@ -67,6 +68,17 @@ func (db *Database) CheckSqlExplainScanRows(sql string) (scanRows int, err error
 			}
 		}
 
+	}
+	return
+}
+
+//获取每个实例下的数据库列表
+func (db *Database) GetDbList() (dbList string, err error) {
+	sql := "SELECT DISTINCT(table_schema) FROM information_schema.TABLES WHERE table_schema NOT IN('sys','system','mysql','information_schema','performance_schema')"
+
+	result, err := db.GetRows(sql)
+	if err == nil {
+		log.Println(result)
 	}
 	return
 }

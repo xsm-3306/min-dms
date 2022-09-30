@@ -1,16 +1,16 @@
 package userhandler
 
 import (
-	"min-dms/dao"
+	"log"
 	"min-dms/response"
-	"min-dms/service"
 
 	"github.com/gin-gonic/gin"
+	"github.com/spf13/viper"
 )
 
-func (uh *Userhandler) GetDbList(ctx *gin.Context) {
+//获取已经配置了的可用的db instance list,并不是查库；而是从初始化的配置文件中读取并返回
+func (uh *Userhandler) GetDbInstanceList(ctx *gin.Context) {
 	username := ctx.PostForm("username")
-	dbnum := ctx.PostForm("dbnum")
 
 	//此模块后期可以再加入JWT，传token，解析后再验证token中的用户
 	userid, err := uh.UserService.GetUseridByUsername(username)
@@ -21,22 +21,18 @@ func (uh *Userhandler) GetDbList(ctx *gin.Context) {
 		return
 	}
 
-	//根据传递数据，dbname dbnum,初始化新的数据库连接来执行相关的操作
-	dbname := "mysql" //初始化需要dbname,给默认值，以建立连接
-	newdb := new(dao.Database).NewDb(dbnum, dbname)
-	newUs := service.UserService{Db: newdb}
-	newUh := Userhandler{UserService: newUs}
-
-	dbList, err := newUh.Db.GetDbList()
+	//获取dblist,并返回给接口请求方
+	var dbNumList []string
+	err = viper.UnmarshalKey("dblist", &dbNumList)
 	if err == nil {
 		msg := ""
 		data := gin.H{
-			"dbList": dbList,
+			"dbNumList": dbNumList,
 		}
 		response.Success(ctx, data, msg)
 	} else {
-
-		msg := "获取dbList失败"
+		log.Println("获取dbNumList失败，dbNumList解组失败", err)
+		msg := "获取dbNumList失败"
 		data := gin.H{
 			"err": err,
 		}
@@ -46,4 +42,5 @@ func (uh *Userhandler) GetDbList(ctx *gin.Context) {
 	}
 
 	ctx.Abort()
+
 }
