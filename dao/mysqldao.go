@@ -76,7 +76,7 @@ func (db *Database) GetRows(sqlstr string, vals ...interface{}) (result []map[st
 	cols, _ := rows.Columns()
 	l := len(cols)
 	rawResult := make([][]byte, l)
-	rowResult := make(map[string]string)
+
 	//定义一个临时interface{}的数组，用来存rawresult的指针地址
 	dest := make([]interface{}, l)
 	for i := range rawResult {
@@ -84,7 +84,8 @@ func (db *Database) GetRows(sqlstr string, vals ...interface{}) (result []map[st
 	}
 
 	for rows.Next() {
-		err = rows.Scan(dest...) //scan rows到dest里，即指向rawResult
+		rowResult := make(map[string]string) //append map把定义放在for循环里面，每次循环重新分配地址重置map
+		err = rows.Scan(dest...)             //scan rows到dest里，即指向rawResult
 		if err == nil {
 			for i, raw := range rawResult {
 				key := cols[i]
@@ -96,12 +97,12 @@ func (db *Database) GetRows(sqlstr string, vals ...interface{}) (result []map[st
 				//result = append(result, rowResult)
 				//log.Println(result)
 			}
-			result = append(result, rowResult)
-			//log.Println(result)
 
 		} else {
 			return nil, err
 		}
+		result = append(result, rowResult)
+		//log.Println(result)
 
 	}
 

@@ -14,6 +14,6 @@ func (us *UserService) CheckSqlExplainScanRows(sql string) (scanRows int, err er
 	return us.Db.CheckSqlExplainScanRows(sql)
 }
 
-func (us *UserService) GetDbList() (dbList string, err error) {
+func (us *UserService) GetDbList() (dbList []string, err error) {
 	return us.Db.GetDbList()
 }

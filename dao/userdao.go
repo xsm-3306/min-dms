@@ -31,7 +31,7 @@ func (db *Database) CheckSqlExplainScanRows(sql string) (scanRows int, err error
 	sqltype, _ := common.SqlTypeVerify(sql)
 
 	result, err := db.GetRows(sqlstr)
-
+	//log.Println(result)
 	if err == nil { //explain结果根据sqltype分别处理
 		switch sqltype {
 		case "insert": //insert 类型对于null_val需要单独处理
@@ -73,12 +73,16 @@ func (db *Database) CheckSqlExplainScanRows(sql string) (scanRows int, err error
 }
 
 //获取每个实例下的数据库列表
-func (db *Database) GetDbList() (dbList string, err error) {
-	sql := "SELECT DISTINCT(table_schema) FROM information_schema.TABLES WHERE table_schema NOT IN('sys','system','mysql','information_schema','performance_schema')"
+func (db *Database) GetDbList() (dbList []string, err error) {
+	sql := "SELECT DISTINCT(table_schema) FROM information_schema.TABLES WHERE table_schema NOT IN('sys','system','mysql','information_schema','performance_schema')  ORDER BY table_schema"
 
 	result, err := db.GetRows(sql)
 	if err == nil {
-		log.Println(result)
+
+		for i := 0; i < len(result); i++ {
+			log.Println(result[i]["table_schema"])
+			dbList = append(dbList, result[i]["table_schema"])
+		}
 	}
 	return
 }
