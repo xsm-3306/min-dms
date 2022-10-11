@@ -23,6 +23,7 @@ func SqlAnalyzer(sql string) (int, string, bool) {
 			reason := "sql长度超过了允许范围"
 			return i, reason, false
 		}
+		common.SqlConvert2Select(sqlMap[i])
 
 	}
 

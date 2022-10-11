@@ -116,6 +116,7 @@ func (db *Database) ExecSql(sqlstr string) (resultRows map[string]int64, err err
 
 	resultRows = make(map[string]int64)
 
+	//由于是执行阶段(验证已经通过)，不会返回err，直接跳过
 	sqltype, _ := common.SqlTypeVerify(sqlstr)
 
 	var (

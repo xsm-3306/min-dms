@@ -21,3 +21,6 @@ type User struct {
 	Userid   int
 	Username string
 }
+
+//生成随机字符串的种子
+var Letters = []byte("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")

@@ -11,7 +11,7 @@ import (
 //获取已经配置了的可用的db instance list,并不是查库；而是从初始化的配置文件中读取并返回
 func (uh *Userhandler) GetDbInstanceList(ctx *gin.Context) {
 	username := ctx.PostForm("username")
-
+	log.Println(username)
 	//此模块后期可以再加入JWT，传token，解析后再验证token中的用户
 	userid, err := uh.UserService.GetUseridByUsername(username)
 	if err != nil || userid < 1 {

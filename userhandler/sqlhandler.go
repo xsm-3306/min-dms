@@ -7,8 +7,13 @@ import (
 	"min-dms/model"
 	"min-dms/response"
 	"min-dms/service"
+	"min-dms/utils"
+	"strconv"
+	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/spf13/viper"
 )
 
 type Userhandler struct {
@@ -68,8 +73,22 @@ func (uh *Userhandler) SqlHandler(ctx *gin.Context) {
 			return
 		}
 	}
+	//检测阶段完全通过之后，进入备份阶段
+	randstr := utils.Randomstr(4, model.Letters)
+	backupDir := viper.GetString("BackupDir")
+	GlobalRecoveryId := "dms" + randstr + strconv.Itoa(int(time.Now().Unix()))
 
-	/*检测通过之后，sql执行阶段；*/
+	for i := 1; i <= len(sqlmap); i++ {
+		sqltype, _ := common.SqlTypeVerify(sqlmap[i])
+		if sqltype == "insert" {
+			isValues := strings.Contains(sqlmap[i], "values")
+			if isValues {
+				utils.FileWriter(GlobalRecoveryId, backupDir, sqlmap[i])
+			}
+		}
+	}
+
+	/*检测备份通过之后，sql执行阶段；*/
 	/*此处对于一系列传入的SQL并没有使用事物,视每条sql间没有事务依赖关系*/
 	var (
 		rowsInserted int

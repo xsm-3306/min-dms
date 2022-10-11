@@ -1,6 +1,7 @@
 package userhandler
 
 import (
+	"log"
 	"min-dms/dao"
 	"min-dms/response"
 	"min-dms/service"
@@ -11,7 +12,7 @@ import (
 func (uh *Userhandler) GetDbList(ctx *gin.Context) {
 	username := ctx.PostForm("username")
 	dbnum := ctx.PostForm("dbnum")
-
+	log.Println(username, dbnum)
 	//此模块后期可以再加入JWT，传token，解析后再验证token中的用户
 	userid, err := uh.UserService.GetUseridByUsername(username)
 	if err != nil || userid < 1 {

@@ -3,6 +3,7 @@ package common
 import (
 	"errors"
 	"min-dms/model"
+	"min-dms/utils"
 	"strings"
 )
 
@@ -37,5 +38,33 @@ func SqlLengthVerify(sql string) bool {
 
 //
 func SqlExplainScanRowsVerify(sql string) {
+
+}
+
+//SqlConvert2Select 实现SQL转换功能。
+//insert delete update转换成对应where条件的select,在执行时的备份阶段会用到
+func SqlConvert2Select(sql string) (newsql string) {
+
+	sqltype, _ := SqlTypeVerify(sql)
+
+	switch sqltype {
+	case "delete":
+		substr := utils.SplitStringByChar2(sql, "from")
+		newsql = "select * from " + substr
+	case "update":
+		substr := utils.SplitStringByChar2(sql, "where")
+		m := strings.Index(sql, "set")
+		tablename := sql[6:m]
+		newsql = "select * from" + tablename + " where " + substr
+
+	case "insert":
+		isValues := strings.Contains(sql, "values")
+		if !isValues {
+			m := strings.Index(sql, "select")
+			newsql = sql[m:]
+		}
+	}
+
+	return
 
 }

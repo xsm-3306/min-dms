@@ -13,6 +13,7 @@ func SqlStatementSplit(sql string) map[int]string {
 	if last_char != ";" {
 		sql_str = sql_str + ";" //为SQL加结尾分号
 	}
-	sqlmap := utils.SplitStringByChar(sql_str, ";")
+	n := strings.Count(sql_str, ";")
+	sqlmap := utils.SplitStringByChar(sql_str, ";", n)
 	return sqlmap
 }
