@@ -80,9 +80,9 @@ func (db *Database) GetDbList() (dbList []string, err error) {
 	if err == nil {
 
 		for i := 0; i < len(result); i++ {
-			log.Println(result[i]["table_schema"])
 			dbList = append(dbList, result[i]["table_schema"])
 		}
+		log.Println(dbList)
 	}
 	return
 }

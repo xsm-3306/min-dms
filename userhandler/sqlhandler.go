@@ -27,13 +27,15 @@ func (uh *Userhandler) SqlHandler(ctx *gin.Context) {
 	username := ctx.PostForm("username")
 	dbnum := ctx.PostForm("dbnum")
 	dbname := ctx.PostForm("dbname")
-	log.Println(username, sql_str, dbname, dbnum)
+	//log.Println(username, sql_str, dbname, dbnum)
 
 	//此模块后期可以再加入JWT，传token，解析后再验证token中的用户
 	userid, err := uh.UserService.GetUseridByUsername(username)
 	if err != nil || userid < 1 {
 		msg := "用户无权限"
-		data := gin.H{}
+		data := gin.H{
+			"err": err,
+		}
 		response.Failed(ctx, data, msg)
 		return
 	}
@@ -43,8 +45,8 @@ func (uh *Userhandler) SqlHandler(ctx *gin.Context) {
 	if !isChecked {
 		msg := "sql语句检测失败"
 		data := gin.H{
-			"reason": reason,
-			"rownum": n,
+			"reason":      reason,
+			"sql -rownum": n,
 		}
 		response.Failed(ctx, data, msg)
 		ctx.Abort()
@@ -64,9 +66,9 @@ func (uh *Userhandler) SqlHandler(ctx *gin.Context) {
 		if err != nil || scanRows > model.SqlExplainScanRowsLimit {
 			msg := "扫描检测失败"
 			data := gin.H{
-				"rownum":   i,
-				"scanrows": scanRows,
-				"error":    err,
+				"sql rownum": i,
+				"scanrows":   scanRows,
+				"error":      err,
 			}
 			response.Failed(ctx, data, msg)
 			ctx.Abort()
@@ -79,15 +81,57 @@ func (uh *Userhandler) SqlHandler(ctx *gin.Context) {
 	GlobalRecoveryId := "dms" + randstr + strconv.Itoa(int(time.Now().Unix()))
 
 	for i := 1; i <= len(sqlmap); i++ {
+		isValues := strings.Contains(sqlmap[i], "values")
 		sqltype, _ := common.SqlTypeVerify(sqlmap[i])
-		if sqltype == "insert" {
-			isValues := strings.Contains(sqlmap[i], "values")
-			if isValues {
-				utils.FileWriter(GlobalRecoveryId, backupDir, sqlmap[i])
+
+		tag := "####第" + strconv.Itoa(i) + "条 " + sqltype + "#####" //写tag
+		utils.FileWriter(GlobalRecoveryId, backupDir, tag)
+
+		if isValues && sqltype == "insert" {
+			//对于定值类insert的备份处理，直接把sql中value后的内容写入文件
+			m := strings.IndexAny(sqlmap[i], "(")
+			backupStr := sqlmap[i][m:]
+			log.Println(m, backupStr)
+			err := utils.FileWriter(GlobalRecoveryId, backupDir, backupStr)
+			if err != nil {
+				msg := "执行前，写备份数据失败"
+				data := gin.H{
+					"err": err,
+				}
+				response.Failed(ctx, data, msg)
+				ctx.Abort()
+				return
 			}
+		} else {
+			newsql := common.SqlConvert2Select(sqlmap[i])
+			log.Println(newsql)
+			resut, err := newUh.UserService.BackUpAndRecovery(newsql)
+			if err == nil {
+				for j := 0; j < len(resut); j++ {
+					jsonResult := utils.Map2Json(resut[j])
+					err := utils.FileWriter(GlobalRecoveryId, backupDir, jsonResult)
+					if err != nil {
+						msg := "执行前，写备份数据失败"
+						data := gin.H{
+							"err": err,
+						}
+						response.Failed(ctx, data, msg)
+						ctx.Abort()
+						return
+					}
+				}
+			} else {
+				msg := "执行前，获取备份数据失败"
+				data := gin.H{
+					"err": err,
+				}
+				response.Failed(ctx, data, msg)
+				ctx.Abort()
+				return
+			}
+
 		}
 	}
-
 	/*检测备份通过之后，sql执行阶段；*/
 	/*此处对于一系列传入的SQL并没有使用事物,视每条sql间没有事务依赖关系*/
 	var (
@@ -101,12 +145,12 @@ func (uh *Userhandler) SqlHandler(ctx *gin.Context) {
 			rowsUpdated = int(resultRows["updateRows"]) + rowsUpdated
 			rowsDeleted = int(resultRows["deleteRows"]) + rowsDeleted
 			rowsInserted = int(resultRows["insertRows"]) + rowsInserted
-			log.Printf("###第%v条sql执行成功###%v插入行数:%v,更新行数:%v,删除行数:%v\n", i, sqlmap[i], rowsInserted, rowsUpdated, rowsDeleted)
+			log.Printf("###第%v条sql执行成功###%v插入行数:%v,更新行数:%v,删除行数:%v\n", i, sqlmap[i], int(resultRows["insertRows"]), int(resultRows["updateRows"]), int(resultRows["deleteRows"]))
 		} else {
 			//执行到任意行失败，则返回，并返回已经修改的行数，和错误信息
 			msg := "执行中断"
 			data := gin.H{
-				"rownum":       i,
+				"sql rownum":   i,
 				"error":        err,
 				"rowsInserted": rowsInserted,
 				"rowsDeleted":  rowsDeleted,
@@ -121,7 +165,7 @@ func (uh *Userhandler) SqlHandler(ctx *gin.Context) {
 	//执行完成后在外层调用response.success统一返回
 	msg := "执行成功"
 	data := gin.H{
-		"rownum":       len(sqlmap),
+		"sql rownum":   len(sqlmap),
 		"rowsInserted": rowsInserted,
 		"rowsDeleted":  rowsDeleted,
 		"rowsUpdated":  rowsUpdated,
