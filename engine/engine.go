@@ -31,7 +31,13 @@ func InitEngine(engine *gin.Engine) {
 	InitHandler()
 
 	engine.Use(middleware.CrosMiddle())
-	engine.POST("/api/sqlhandler", uh.SqlHandler)
-	engine.POST("/api/getdbinstancelist", uh.GetDbInstanceList)
-	engine.POST("/api/getdblist", uh.GetDbList)
+
+	router := engine.Group("/")
+	router.Use(middleware.JwtAuthMiddle())
+	{
+		router.POST("/api/sqlhandler", uh.SqlHandler)
+		router.POST("/api/getdbinstancelist", uh.GetDbInstanceList)
+		router.POST("/api/getdblist", uh.GetDbList)
+	}
+
 }

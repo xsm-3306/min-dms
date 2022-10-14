@@ -1,6 +1,8 @@
 package middleware
 
 import (
+	"min-dms/common"
+	"min-dms/response"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -21,5 +23,32 @@ func CrosMiddle() gin.HandlerFunc {
 			//ct.JSON(http.StatusOK, "OPTIONS OK")
 			ct.AbortWithStatus(http.StatusNoContent)
 		}
+	}
+}
+
+//jwt token中间件
+func JwtAuthMiddle() func(ctx *gin.Context) {
+	return func(ctx *gin.Context) {
+		token := ctx.Request.Header.Get("Authorization") //采用 Bearer
+		if len(token) <= 7 {
+			msg := "the auth header is empty"
+			data := gin.H{}
+			response.Failed(ctx, data, msg)
+			ctx.Abort()
+			return
+		}
+
+		calims, err := common.ParseToken(token)
+		if err != nil {
+			msg := "the token is invalid"
+			data := gin.H{
+				"err": err,
+			}
+			response.Failed(ctx, data, msg)
+		}
+
+		ctx.Set("username", calims.User.Username) //解析出来结果之后，保存username，以供上下文使用
+		ctx.Next()
+
 	}
 }

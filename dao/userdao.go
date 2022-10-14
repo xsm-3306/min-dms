@@ -86,3 +86,17 @@ func (db *Database) GetDbList() (dbList []string, err error) {
 	}
 	return
 }
+
+//用户匹配,登录
+//是否应该再数据库dao层完整password比对，还是返回到上层再进行比对？
+func (db *Database) Login(username string) error {
+	sql := "select id,username,password,is_deleted from user_info where usernam=?"
+
+	result, err := db.GetRows(sql, username)
+	if err == nil && len(result) >= 1 {
+		for key := range result[0] {
+			is_deleted, _ := strconv.Atoi(result[0]["is_deleted"])
+			if
+		}
+	}
+}

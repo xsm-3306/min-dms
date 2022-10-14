@@ -24,10 +24,11 @@ type Userhandler struct {
 func (uh *Userhandler) SqlHandler(ctx *gin.Context) {
 	//postform接收string
 	sql_str := ctx.PostForm("sql")
-	username := ctx.PostForm("username")
 	dbnum := ctx.PostForm("dbnum")
 	dbname := ctx.PostForm("dbname")
 	//log.Println(username, sql_str, dbname, dbnum)
+
+	username := ctx.GetString("username") //cros通过后上下文设置了
 
 	//此模块后期可以再加入JWT，传token，解析后再验证token中的用户
 	userid, err := uh.UserService.GetUseridByUsername(username)
