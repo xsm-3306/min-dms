@@ -52,7 +52,14 @@ func SqlConvert2Select(sql string) (newsql string) {
 		substr := utils.SplitStringByChar2(sql, "from")
 		newsql = "select * from " + substr
 	case "update":
-		substr := utils.SplitStringByChar2(sql, "where")
+		//是否含有where条件的全表更新判断
+		isWhere := strings.Contains(sql, "where")
+		substr := ""
+		if isWhere {
+			substr = utils.SplitStringByChar2(sql, "where")
+		} else {
+			substr = "1=1"
+		}
 		m := strings.Index(sql, "set")
 		tablename := sql[6:m]
 		newsql = "select * from" + tablename + " where " + substr

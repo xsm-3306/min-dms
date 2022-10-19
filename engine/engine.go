@@ -31,6 +31,8 @@ func InitEngine(engine *gin.Engine) {
 	InitHandler()
 
 	engine.Use(middleware.CrosMiddle())
+	engine.POST("/api/login", uh.Login)
+	engine.POST("/api/register", uh.Register)
 
 	router := engine.Group("/")
 	router.Use(middleware.JwtAuthMiddle())

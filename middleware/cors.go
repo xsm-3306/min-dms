@@ -30,6 +30,8 @@ func CrosMiddle() gin.HandlerFunc {
 func JwtAuthMiddle() func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
 		token := ctx.Request.Header.Get("Authorization") //采用 Bearer
+		token = token[7:]
+
 		if len(token) <= 7 {
 			msg := "the auth header is empty"
 			data := gin.H{}
@@ -41,13 +43,17 @@ func JwtAuthMiddle() func(ctx *gin.Context) {
 		calims, err := common.ParseToken(token)
 		if err != nil {
 			msg := "the token is invalid"
-			data := gin.H{
-				"err": err,
-			}
-			response.Failed(ctx, data, msg)
-		}
 
-		ctx.Set("username", calims.User.Username) //解析出来结果之后，保存username，以供上下文使用
+			//response.Failed(ctx, data, msg)
+			ctx.JSON(http.StatusUnauthorized, gin.H{
+				"err": err,
+				"msg": msg,
+			})
+			ctx.AbortWithStatus(http.StatusUnauthorized)
+			return
+		}
+		//解析出来结果之后，保存username，以供上下文使用
+		ctx.Set("username", calims.User.Username)
 		ctx.Next()
 
 	}

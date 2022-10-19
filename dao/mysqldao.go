@@ -109,6 +109,27 @@ func (db *Database) GetRows(sqlstr string, vals ...interface{}) (result []map[st
 	return
 }
 
+//实现一个insert rows功能,返回error及插入结果
+func (db *Database) AddRows(sqlstr string, vals ...interface{}) (int64, error) {
+	db.OpenDb()
+	defer db.CloseDb()
+	//var rows *sql.Rows
+
+	stmt, err := db.Db_con.Prepare(sqlstr)
+	if err != nil {
+		return 0, err
+	}
+	defer stmt.Close()
+
+	result, err := stmt.Exec(vals...)
+	if err != nil {
+		return 0, err
+	}
+	lastInsertedId, _ := result.LastInsertId()
+	return lastInsertedId, nil
+
+}
+
 //执行非SELECT sql，并返回受影响的数据行数()
 func (db *Database) ExecSql(sqlstr string) (resultRows map[string]int64, err error) {
 	db.OpenDb()
