@@ -34,6 +34,10 @@ func (uh *Userhandler) Login(ctx *gin.Context) {
 		ctx.Abort()
 		return
 	}
+	//获取到的token入库，后续可以做成类似token注销的功能；更建议直接存在redis中。
+	//但是此处不影响主流程，即即使没有写入，也不影响后续
+	sqlstr := "insert into user_authtoken_log(token_str)values(?)"
+	uh.UserService.Db.AddRows(sqlstr, token)
 
 	data := gin.H{
 		"token": token,

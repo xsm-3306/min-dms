@@ -30,26 +30,52 @@ func (uh *Userhandler) SqlHandler(ctx *gin.Context) {
 
 	username := ctx.GetString("username") //cros通过后上下文设置了
 
+	var (
+		rowsInserted     int
+		rowsUpdated      int
+		rowsDeleted      int
+		execResult       string
+		globalRecoveryId string
+		msg              string
+		userid           int
+		err              error
+	)
+
 	//此模块后期可以再加入JWT，传token，解析后再验证token中的用户
-	userid, err := uh.UserService.GetUseridByUsername(username)
+	userid, err = uh.UserService.GetUseridByUsername(username)
 	if err != nil || userid < 1 {
-		msg := "用户无权限"
+		msg = "用户无权限"
 		data := gin.H{
 			"err": err,
 		}
 		response.Failed(ctx, data, msg)
+
+		//写执行结果模块
+		execResult = "Failed"
+		InsertResultsErr := uh.UserService.Db.InsertResults(userid, execResult, msg, rowsInserted, rowsUpdated, rowsDeleted, globalRecoveryId)
+		if InsertResultsErr != nil {
+			log.Println(InsertResultsErr)
+		}
+
 		return
 	}
 
 	//用户验证通过后，流程进入分析器sqlAnalyzer
 	n, reason, isChecked := service.SqlAnalyzer(sql_str)
 	if !isChecked {
-		msg := "sql语句检测失败"
+		msg = "sql语句检测失败"
 		data := gin.H{
 			"reason":      reason,
 			"sql -rownum": n,
 		}
 		response.Failed(ctx, data, msg)
+
+		execResult = "Failed"
+		InsertResultsErr := uh.UserService.Db.InsertResults(userid, execResult, msg, rowsInserted, rowsUpdated, rowsDeleted, globalRecoveryId)
+		if InsertResultsErr != nil {
+			log.Println(InsertResultsErr)
+		}
+
 		ctx.Abort()
 		return
 	}
@@ -65,41 +91,56 @@ func (uh *Userhandler) SqlHandler(ctx *gin.Context) {
 
 		scanRows, err := newUh.UserService.CheckSqlExplainScanRows(sqlmap[i])
 		if err != nil || scanRows > model.SqlExplainScanRowsLimit {
-			msg := "扫描检测失败"
+			msg = "扫描检测失败"
 			data := gin.H{
 				"sql rownum": i,
 				"scanrows":   scanRows,
 				"error":      err,
 			}
 			response.Failed(ctx, data, msg)
+
+			execResult = "Failed"
+			InsertResultsErr := uh.UserService.Db.InsertResults(userid, execResult, msg, rowsInserted, rowsUpdated, rowsDeleted, globalRecoveryId)
+			if InsertResultsErr != nil {
+				log.Println(InsertResultsErr)
+			}
+
 			ctx.Abort()
 			return
 		}
 	}
 	//检测阶段完全通过之后，进入备份阶段
+	//生成全局recoveryid,只有前期检测全部通过
 	randstr := utils.Randomstr(4, model.Letters)
 	backupDir := viper.GetString("BackupDir")
-	GlobalRecoveryId := "dms" + randstr + strconv.Itoa(int(time.Now().Unix()))
+	globalRecoveryId = "dms" + randstr + strconv.Itoa(int(time.Now().Unix()))
 
 	for i := 1; i <= len(sqlmap); i++ {
 		isValues := strings.Contains(sqlmap[i], "values")
 		sqltype, _ := common.SqlTypeVerify(sqlmap[i])
 
 		tag := "####第" + strconv.Itoa(i) + "条 " + sqltype + "#####" //写tag
-		utils.FileWriter(GlobalRecoveryId, backupDir, tag)
+		utils.FileWriter(globalRecoveryId, backupDir, tag)
 
 		if isValues && sqltype == "insert" {
 			//对于定值类insert的备份处理，直接把sql中value后的内容写入文件
 			m := strings.IndexAny(sqlmap[i], "(")
 			backupStr := sqlmap[i][m:]
 			log.Println(m, backupStr)
-			err := utils.FileWriter(GlobalRecoveryId, backupDir, backupStr)
+			err := utils.FileWriter(globalRecoveryId, backupDir, backupStr)
 			if err != nil {
-				msg := "执行前，写备份数据失败"
+				msg = "执行前，写备份数据失败"
 				data := gin.H{
 					"err": err,
 				}
 				response.Failed(ctx, data, msg)
+
+				execResult = "Failed"
+				InsertResultsErr := uh.UserService.Db.InsertResults(userid, execResult, msg, rowsInserted, rowsUpdated, rowsDeleted, globalRecoveryId)
+				if InsertResultsErr != nil {
+					log.Println(InsertResultsErr)
+				}
+
 				ctx.Abort()
 				return
 			}
@@ -110,23 +151,35 @@ func (uh *Userhandler) SqlHandler(ctx *gin.Context) {
 			if err == nil {
 				for j := 0; j < len(resut); j++ {
 					jsonResult := utils.Map2Json(resut[j])
-					err := utils.FileWriter(GlobalRecoveryId, backupDir, jsonResult)
+					err := utils.FileWriter(globalRecoveryId, backupDir, jsonResult)
 					if err != nil {
-						msg := "执行前，写备份数据失败"
+						msg = "执行前，写备份数据失败"
 						data := gin.H{
 							"err": err,
 						}
 						response.Failed(ctx, data, msg)
+
+						execResult = "Failed"
+						InsertResultsErr := uh.UserService.Db.InsertResults(userid, execResult, msg, rowsInserted, rowsUpdated, rowsDeleted, globalRecoveryId)
+						if InsertResultsErr != nil {
+							log.Println(InsertResultsErr)
+						}
+
 						ctx.Abort()
 						return
 					}
 				}
 			} else {
-				msg := "执行前，获取备份数据失败"
+				msg = "执行前，获取备份数据失败"
 				data := gin.H{
 					"err": err,
 				}
 				response.Failed(ctx, data, msg)
+				execResult = "Failed"
+				InsertResultsErr := uh.UserService.Db.InsertResults(userid, execResult, msg, rowsInserted, rowsUpdated, rowsDeleted, globalRecoveryId)
+				if InsertResultsErr != nil {
+					log.Println(InsertResultsErr)
+				}
 				ctx.Abort()
 				return
 			}
@@ -135,11 +188,7 @@ func (uh *Userhandler) SqlHandler(ctx *gin.Context) {
 	}
 	/*检测备份通过之后，sql执行阶段；*/
 	/*此处对于一系列传入的SQL并没有使用事物,视每条sql间没有事务依赖关系*/
-	var (
-		rowsInserted int
-		rowsUpdated  int
-		rowsDeleted  int
-	)
+
 	for i := 1; i <= len(sqlmap); i++ {
 		resultRows, err := newUh.UserService.ExecSqlAndGetRownum(sqlmap[i])
 		if err == nil {
@@ -159,12 +208,19 @@ func (uh *Userhandler) SqlHandler(ctx *gin.Context) {
 			}
 			log.Printf("###%v执行失败###\n", sqlmap[i])
 			response.Failed(ctx, data, msg)
+
+			execResult = "Failed"
+			InsertResultsErr := uh.UserService.Db.InsertResults(userid, execResult, msg, rowsInserted, rowsUpdated, rowsDeleted, globalRecoveryId)
+			if InsertResultsErr != nil {
+				log.Println(InsertResultsErr)
+			}
+
 			ctx.Abort()
 			return
 		}
 	}
 	//执行完成后在外层调用response.success统一返回
-	msg := "执行成功"
+	msg = "执行成功"
 	data := gin.H{
 		"sql rownum":   len(sqlmap),
 		"rowsInserted": rowsInserted,
@@ -172,6 +228,12 @@ func (uh *Userhandler) SqlHandler(ctx *gin.Context) {
 		"rowsUpdated":  rowsUpdated,
 	}
 	response.Success(ctx, data, msg)
+
+	execResult = "Success"
+	InsertResultsErr := uh.UserService.Db.InsertResults(userid, execResult, msg, rowsInserted, rowsUpdated, rowsDeleted, globalRecoveryId)
+	if InsertResultsErr != nil {
+		log.Println(InsertResultsErr)
+	}
 
 	ctx.Abort()
 }

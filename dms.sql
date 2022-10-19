@@ -33,15 +33,16 @@ CREATE TABLE `user_whitelist` (
 insert into user_whitelist(username,is_deleted)values("admin",0);
 
 drop table if exists user_sqlexec_log;
-CREATE TABLE `user_sqlexec_log` (
+ CREATE TABLE `user_sqlexec_log` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `user_id` int(11) DEFAULT NULL COMMENT 'user id reference tab user_info primary key',
-  `created` datetime NOT NULL DEFAULT current_timestamp(),
+  `user_id` int(11) DEFAULT NULL COMMENT 'user id reference tab user_whitelist primary key',
   `exec_result` varchar(50) DEFAULT NULL COMMENT '执行结果',
+  `reason` varchar(100) DEFAULT NULL COMMENT '失败原因',
   `rows_inserted` int(11) DEFAULT NULL,
   `rows_updated` int(11) DEFAULT NULL,
   `rows_deleted` int(11) DEFAULT NULL,
   `recovery_id` varchar(50) DEFAULT NULL COMMENT '回退id，也作为回退文件名',
+  `created` datetime NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),
   KEY `idx_recovery_id` (`recovery_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
