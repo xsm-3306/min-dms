@@ -128,7 +128,7 @@ func (db *Database) AddUser(registeruser *model.LoginUser) error {
 
 //执行结果入库
 func (db *Database) InsertResults(vals ...interface{}) error {
-	resutlInsertSql := "insert into user_sqlexec_log(user_id,exec_result,reason,rows_inserted,rows_updated,rows_deleted,recovery_id)values(?,?,?,?,?,?,?)"
+	resutlInsertSql := "insert into user_sqlexec_log(user_id,exec_result,reason,sql_rownum,rows_inserted,rows_updated,rows_deleted,recovery_id)values(?,?,?,?,?,?,?,?)"
 	_, err := db.AddRows(resutlInsertSql, vals...)
 	if err != nil {
 		return err

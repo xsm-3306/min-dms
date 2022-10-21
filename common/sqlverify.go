@@ -2,9 +2,10 @@ package common
 
 import (
 	"errors"
-	"min-dms/model"
 	"min-dms/utils"
 	"strings"
+
+	"github.com/spf13/viper"
 )
 
 //Sqltypeverify 检查sql type，确保只能是delete update insert中的一种，并且返回sqltype
@@ -32,7 +33,7 @@ func SqlStatementSimpleVerify() {
 //SqlLengthVerify 验证传入sql string的长度，最大允许长度定义再参数SqlLengthLimit中
 func SqlLengthVerify(sql string) bool {
 
-	return len(sql) < model.SqlLengthLimit
+	return len(sql) < viper.GetInt("SqlLengthLimit")
 
 }
 

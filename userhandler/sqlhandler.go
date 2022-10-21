@@ -36,6 +36,7 @@ func (uh *Userhandler) SqlHandler(ctx *gin.Context) {
 		rowsDeleted      int
 		execResult       string
 		globalRecoveryId string
+		sqlRownum        int
 		msg              string
 		userid           int
 		err              error
@@ -52,7 +53,7 @@ func (uh *Userhandler) SqlHandler(ctx *gin.Context) {
 
 		//写执行结果模块
 		execResult = "Failed"
-		InsertResultsErr := uh.UserService.Db.InsertResults(userid, execResult, msg, rowsInserted, rowsUpdated, rowsDeleted, globalRecoveryId)
+		InsertResultsErr := uh.UserService.Db.InsertResults(userid, execResult, msg, sqlRownum, rowsInserted, rowsUpdated, rowsDeleted, globalRecoveryId)
 		if InsertResultsErr != nil {
 			log.Println(InsertResultsErr)
 		}
@@ -71,7 +72,7 @@ func (uh *Userhandler) SqlHandler(ctx *gin.Context) {
 		response.Failed(ctx, data, msg)
 
 		execResult = "Failed"
-		InsertResultsErr := uh.UserService.Db.InsertResults(userid, execResult, msg, rowsInserted, rowsUpdated, rowsDeleted, globalRecoveryId)
+		InsertResultsErr := uh.UserService.Db.InsertResults(userid, execResult, msg, sqlRownum, rowsInserted, rowsUpdated, rowsDeleted, globalRecoveryId)
 		if InsertResultsErr != nil {
 			log.Println(InsertResultsErr)
 		}
@@ -90,7 +91,7 @@ func (uh *Userhandler) SqlHandler(ctx *gin.Context) {
 	for i := 1; i <= len(sqlmap); i++ {
 
 		scanRows, err := newUh.UserService.CheckSqlExplainScanRows(sqlmap[i])
-		if err != nil || scanRows > model.SqlExplainScanRowsLimit {
+		if err != nil || scanRows > viper.GetInt("SqlExplainScanRowsLimit") {
 			msg = "扫描检测失败"
 			data := gin.H{
 				"sql rownum": i,
@@ -100,7 +101,8 @@ func (uh *Userhandler) SqlHandler(ctx *gin.Context) {
 			response.Failed(ctx, data, msg)
 
 			execResult = "Failed"
-			InsertResultsErr := uh.UserService.Db.InsertResults(userid, execResult, msg, rowsInserted, rowsUpdated, rowsDeleted, globalRecoveryId)
+			sqlRownum = i
+			InsertResultsErr := uh.UserService.Db.InsertResults(userid, execResult, msg, sqlRownum, rowsInserted, rowsUpdated, rowsDeleted, globalRecoveryId)
 			if InsertResultsErr != nil {
 				log.Println(InsertResultsErr)
 			}
@@ -126,7 +128,7 @@ func (uh *Userhandler) SqlHandler(ctx *gin.Context) {
 			//对于定值类insert的备份处理，直接把sql中value后的内容写入文件
 			m := strings.IndexAny(sqlmap[i], "(")
 			backupStr := sqlmap[i][m:]
-			log.Println(m, backupStr)
+			//log.Println(m, backupStr)
 			err := utils.FileWriter(globalRecoveryId, backupDir, backupStr)
 			if err != nil {
 				msg = "执行前，写备份数据失败"
@@ -135,8 +137,9 @@ func (uh *Userhandler) SqlHandler(ctx *gin.Context) {
 				}
 				response.Failed(ctx, data, msg)
 
+				sqlRownum = i
 				execResult = "Failed"
-				InsertResultsErr := uh.UserService.Db.InsertResults(userid, execResult, msg, rowsInserted, rowsUpdated, rowsDeleted, globalRecoveryId)
+				InsertResultsErr := uh.UserService.Db.InsertResults(userid, execResult, msg, sqlRownum, rowsInserted, rowsUpdated, rowsDeleted, globalRecoveryId)
 				if InsertResultsErr != nil {
 					log.Println(InsertResultsErr)
 				}
@@ -159,8 +162,9 @@ func (uh *Userhandler) SqlHandler(ctx *gin.Context) {
 						}
 						response.Failed(ctx, data, msg)
 
+						sqlRownum = i
 						execResult = "Failed"
-						InsertResultsErr := uh.UserService.Db.InsertResults(userid, execResult, msg, rowsInserted, rowsUpdated, rowsDeleted, globalRecoveryId)
+						InsertResultsErr := uh.UserService.Db.InsertResults(userid, execResult, msg, sqlRownum, rowsInserted, rowsUpdated, rowsDeleted, globalRecoveryId)
 						if InsertResultsErr != nil {
 							log.Println(InsertResultsErr)
 						}
@@ -175,8 +179,10 @@ func (uh *Userhandler) SqlHandler(ctx *gin.Context) {
 					"err": err,
 				}
 				response.Failed(ctx, data, msg)
+
+				sqlRownum = i
 				execResult = "Failed"
-				InsertResultsErr := uh.UserService.Db.InsertResults(userid, execResult, msg, rowsInserted, rowsUpdated, rowsDeleted, globalRecoveryId)
+				InsertResultsErr := uh.UserService.Db.InsertResults(userid, execResult, msg, sqlRownum, rowsInserted, rowsUpdated, rowsDeleted, globalRecoveryId)
 				if InsertResultsErr != nil {
 					log.Println(InsertResultsErr)
 				}
@@ -209,8 +215,9 @@ func (uh *Userhandler) SqlHandler(ctx *gin.Context) {
 			log.Printf("###%v执行失败###\n", sqlmap[i])
 			response.Failed(ctx, data, msg)
 
+			sqlRownum = i
 			execResult = "Failed"
-			InsertResultsErr := uh.UserService.Db.InsertResults(userid, execResult, msg, rowsInserted, rowsUpdated, rowsDeleted, globalRecoveryId)
+			InsertResultsErr := uh.UserService.Db.InsertResults(userid, execResult, msg, sqlRownum, rowsInserted, rowsUpdated, rowsDeleted, globalRecoveryId)
 			if InsertResultsErr != nil {
 				log.Println(InsertResultsErr)
 			}
@@ -229,8 +236,9 @@ func (uh *Userhandler) SqlHandler(ctx *gin.Context) {
 	}
 	response.Success(ctx, data, msg)
 
+	sqlRownum = len(sqlmap)
 	execResult = "Success"
-	InsertResultsErr := uh.UserService.Db.InsertResults(userid, execResult, msg, rowsInserted, rowsUpdated, rowsDeleted, globalRecoveryId)
+	InsertResultsErr := uh.UserService.Db.InsertResults(userid, execResult, msg, sqlRownum, rowsInserted, rowsUpdated, rowsDeleted, globalRecoveryId)
 	if InsertResultsErr != nil {
 		log.Println(InsertResultsErr)
 	}

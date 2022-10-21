@@ -33,11 +33,12 @@ CREATE TABLE `user_whitelist` (
 insert into user_whitelist(username,is_deleted)values("admin",0);
 
 drop table if exists user_sqlexec_log;
- CREATE TABLE `user_sqlexec_log` (
+CREATE TABLE `user_sqlexec_log` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `user_id` int(11) DEFAULT NULL COMMENT 'user id reference tab user_whitelist primary key',
   `exec_result` varchar(50) DEFAULT NULL COMMENT '执行结果',
   `reason` varchar(100) DEFAULT NULL COMMENT '失败原因',
+  `sql_rownum` int(11) DEFAULT NULL,
   `rows_inserted` int(11) DEFAULT NULL,
   `rows_updated` int(11) DEFAULT NULL,
   `rows_deleted` int(11) DEFAULT NULL,

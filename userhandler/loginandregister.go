@@ -1,7 +1,6 @@
 package userhandler
 
 import (
-	"log"
 	"min-dms/model"
 	"min-dms/response"
 
@@ -22,7 +21,7 @@ func (uh *Userhandler) Login(ctx *gin.Context) {
 		ctx.Abort()
 		return
 	}
-	log.Println(loginuser)
+	//log.Println(loginuser)
 
 	token, err := uh.UserService.Login(&loginuser)
 	if err != nil {
