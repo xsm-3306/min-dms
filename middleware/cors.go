@@ -46,7 +46,7 @@ func JwtAuthMiddle(corUh *userhandler.Userhandler) func(ctx *gin.Context) {
 		result, err := corUh.UserService.Db.GetRows(sql, token)
 		//log.Println(result)
 		if err != nil {
-			msg := "fail to vertify token availability "
+			msg := "fail to get token info"
 			data := gin.H{
 				"err": err,
 			}
@@ -55,7 +55,7 @@ func JwtAuthMiddle(corUh *userhandler.Userhandler) func(ctx *gin.Context) {
 			return
 		} else {
 			if len(result) == 0 {
-				msg := "no token found in the lists"
+				msg := "fail to vertify token availability"
 				data := gin.H{}
 				response.Response(ctx, http.StatusUnauthorized, 400, data, msg)
 				ctx.Abort()
