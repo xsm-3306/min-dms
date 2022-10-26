@@ -26,7 +26,7 @@ func (uh *Userhandler) Login(ctx *gin.Context) {
 	token, err := uh.UserService.Login(&loginuser)
 	if err != nil {
 		data := gin.H{
-			"err": err,
+			"err": err.Error(),
 		}
 		msg := "用户验证失败"
 		response.Failed(ctx, data, msg)

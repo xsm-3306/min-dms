@@ -102,7 +102,7 @@ func (db *Database) CompareUserInfo(loguser *model.LoginUser) (token string, err
 	}
 
 	if len(result) < 1 {
-		err = fmt.Errorf("user not exists%w", err)
+		err = fmt.Errorf("user do not exists ")
 
 		return "", err
 	} else {

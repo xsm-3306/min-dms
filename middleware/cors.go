@@ -3,6 +3,7 @@ package middleware
 import (
 	"min-dms/common"
 	"min-dms/response"
+	"min-dms/userhandler"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -27,7 +28,7 @@ func CrosMiddle() gin.HandlerFunc {
 }
 
 //jwt token中间件
-func JwtAuthMiddle() func(ctx *gin.Context) {
+func JwtAuthMiddle(corUh *userhandler.Userhandler) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
 		token := ctx.Request.Header.Get("Authorization") //采用 Bearer
 		token = token[7:]
@@ -39,7 +40,29 @@ func JwtAuthMiddle() func(ctx *gin.Context) {
 			ctx.Abort()
 			return
 		}
-
+		//token解析之前，先在token可用数据集里面查询一次，这样可以实现toekn注销的功能
+		//var corUh userhandler.Userhandler
+		sql := "select id from user_authtoken_log where is_deleted=0 and token_str=?"
+		result, err := corUh.UserService.Db.GetRows(sql, token)
+		//log.Println(result)
+		if err != nil {
+			msg := "fail to vertify token availability "
+			data := gin.H{
+				"err": err,
+			}
+			response.Response(ctx, http.StatusUnauthorized, 400, data, msg)
+			ctx.Abort()
+			return
+		} else {
+			if len(result) == 0 {
+				msg := "no token found in the lists"
+				data := gin.H{}
+				response.Response(ctx, http.StatusUnauthorized, 400, data, msg)
+				ctx.Abort()
+				return
+			}
+		}
+		//解析token
 		calims, err := common.ParseToken(token)
 		if err != nil {
 			msg := "the token is invalid"

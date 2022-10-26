@@ -35,7 +35,7 @@ func InitEngine(engine *gin.Engine) {
 	engine.POST("/api/user/register", uh.Register)
 
 	router := engine.Group("/")
-	router.Use(middleware.JwtAuthMiddle())
+	router.Use(middleware.JwtAuthMiddle(&uh))
 	{
 		router.POST("/api/sqlhandler", uh.SqlHandler)
 		router.POST("/api/getdbinstancelist", uh.GetDbInstanceList)

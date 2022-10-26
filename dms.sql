@@ -49,10 +49,11 @@ CREATE TABLE `user_sqlexec_log` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 drop table if exists user_auth_token;
-create table user_authtoken_log(
- id int not null auto_increment,
- token_str varchar(255),
- create_at datetime not null default current_timestamp() comment'入库时间',
- is_deleted tinyint(4) NOT NULL DEFAULT 0 COMMENT '1 yes,0 no',
- primary key(id)
-)engine=innodb DEFAULT CHARSET=utf8;
+CREATE TABLE `user_authtoken_log` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `token_str` varchar(255) DEFAULT NULL,
+  `create_at` datetime NOT NULL DEFAULT current_timestamp() COMMENT '入库时间',
+  `is_deleted` tinyint(4) NOT NULL DEFAULT 0 COMMENT '1 yes,0 no',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uidx_token` (`token_str`)
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8
