@@ -66,13 +66,12 @@ func JwtAuthMiddle(corUh *userhandler.Userhandler) func(ctx *gin.Context) {
 		calims, err := common.ParseToken(token)
 		if err != nil {
 			msg := "the token is invalid"
-
+			data := gin.H{
+				"err": err.Error(),
+			}
 			//response.Failed(ctx, data, msg)
-			ctx.JSON(http.StatusUnauthorized, gin.H{
-				"err": err,
-				"msg": msg,
-			})
-			ctx.AbortWithStatus(http.StatusUnauthorized)
+			response.Response(ctx, http.StatusUnauthorized, 400, data, msg)
+			ctx.Abort()
 			return
 		}
 		//解析出来结果之后，保存username，以供上下文使用
