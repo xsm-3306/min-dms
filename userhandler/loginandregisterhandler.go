@@ -1,6 +1,7 @@
 package userhandler
 
 import (
+	"min-dms/common"
 	"min-dms/model"
 	"min-dms/response"
 
@@ -50,7 +51,7 @@ func (uh *Userhandler) Login(ctx *gin.Context) {
 //用户注册handler
 func (uh *Userhandler) Register(ctx *gin.Context) {
 	var registeruser model.LoginUser
-
+	//解析
 	if err := ctx.ShouldBind(&registeruser); err != nil {
 		data := gin.H{
 			"err": err,
@@ -61,8 +62,19 @@ func (uh *Userhandler) Register(ctx *gin.Context) {
 		ctx.Abort()
 		return
 	}
-
-	err := uh.UserService.Db.AddUser(&registeruser)
+	//验证
+	err := common.PasswordStrengthVertify(registeruser.Password)
+	if err != nil {
+		data := gin.H{
+			"err": err.Error(),
+		}
+		msg := "密码强度不符合要求"
+		response.Failed(ctx, data, msg)
+		ctx.Abort()
+		return
+	}
+	//注册入库
+	err = uh.UserService.Db.AddUser(&registeruser)
 	if err != nil {
 		data := gin.H{
 			"err": err,
