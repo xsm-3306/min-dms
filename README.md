@@ -7,6 +7,7 @@ a min db management system
 
 Example of ./config/dbconfig.yaml
 #####################################
+
 dblist: [db0,test28,test29,test30]
 
 db01:
