@@ -10,8 +10,11 @@ import (
 )
 
 func (uh *Userhandler) GetDbList(ctx *gin.Context) {
-	username := ctx.PostForm("username")
+	//username := ctx.PostForm("username")
 	dbnum := ctx.PostForm("dbnum")
+
+	username := ctx.GetString("username")
+
 	log.Println(username, dbnum)
 	//此模块后期可以再加入JWT，传token，解析后再验证token中的用户
 	userid, err := uh.UserService.GetUseridByUsername(username)

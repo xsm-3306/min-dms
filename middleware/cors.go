@@ -31,7 +31,6 @@ func CrosMiddle() gin.HandlerFunc {
 func JwtAuthMiddle(corUh *userhandler.Userhandler) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
 		token := ctx.Request.Header.Get("Authorization") //采用 Bearer
-		token = token[7:]
 
 		if len(token) <= 7 {
 			msg := "the auth header is empty"
@@ -40,6 +39,8 @@ func JwtAuthMiddle(corUh *userhandler.Userhandler) func(ctx *gin.Context) {
 			ctx.Abort()
 			return
 		}
+
+		token = token[7:]
 		//token解析之前，先在token可用数据集里面查询一次，这样可以实现toekn注销的功能
 		//var corUh userhandler.Userhandler
 		sql := "select id from user_authtoken_log where is_deleted=0 and token_str=?"

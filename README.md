@@ -7,31 +7,32 @@ a min db management system
 
 Example of ./config/dbconfig.yaml
 #####################################
+
 dblist: [db0,test28,test29,test30]
 
 db01:
   host: 192.168.19.01
   port: 3306
   username: dms
-  password: d_m3123445
+  password: ************
 
 test02:
   host: 192.168.19.02
   port: 3306
   username: dms
-  password: d_m3123445
+  password: ************
 
 test03:
   host: 192.168.19.03
   port: 3306
   username: dms
-  password: d_m3123445
+  password: ************
 
 test04:
   host: 192.168.19.04
   port: 3306
   username: dms
-  password: d_m3123445
+  password: ************
 
 ##备份文件目录位置
 BackupDir: D:\Scripts\backup\
