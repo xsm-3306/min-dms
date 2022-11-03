@@ -14,8 +14,8 @@ func (uh *Userhandler) GetDbInstanceList(ctx *gin.Context) {
 
 	username := ctx.GetString("username")
 	//此模块后期可以再加入JWT，传token，解析后再验证token中的用户
-	userid, err := uh.UserService.GetUseridByUsername(username)
-	if err != nil || userid < 1 {
+	userInWhitelist := uh.UserService.CheckUserInWhitelist(username)
+	if !userInWhitelist {
 		msg := "用户无权限"
 		data := gin.H{}
 		response.Failed(ctx, data, msg)
@@ -24,7 +24,7 @@ func (uh *Userhandler) GetDbInstanceList(ctx *gin.Context) {
 
 	//获取dblist,并返回给接口请求方
 	var dbNumList []string
-	err = viper.UnmarshalKey("dblist", &dbNumList)
+	err := viper.UnmarshalKey("dblist", &dbNumList)
 	if err == nil {
 		msg := ""
 		data := gin.H{

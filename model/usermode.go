@@ -18,7 +18,7 @@ type LoginUser struct {
 var Letters = []byte("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 
 //token加密串
-var SignStr = []byte("chaos is a ladder,i am chaos")
+var SignStr = []byte("chaos is a ladder,but i am not little finger!")
 
 //token有效时长
 const TokenExpiredTime = time.Hour * 1

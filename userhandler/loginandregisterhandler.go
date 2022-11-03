@@ -62,8 +62,20 @@ func (uh *Userhandler) Register(ctx *gin.Context) {
 		ctx.Abort()
 		return
 	}
+	//先检测用户是否存在
+	userExists, err := uh.UserService.Db.CheckUserExists(registeruser.Username)
+	if userExists {
+		data := gin.H{
+			"err": err.Error(),
+		}
+		msg := "用户账号已存在"
+		response.Failed(ctx, data, msg)
+		ctx.Abort()
+		return
+	}
+
 	//验证
-	err := common.PasswordStrengthVertify(registeruser.Password)
+	err = common.PasswordStrengthVertify(registeruser.Password)
 	if err != nil {
 		data := gin.H{
 			"err": err.Error(),

@@ -1,13 +1,14 @@
 package dao
 
 import (
+	"errors"
 	"log"
 	"min-dms/common"
 	"strconv"
 )
 
-//根据用户名查询id
-func (db *Database) GetUseridByUsername(username string) (userid int, err error) {
+//检测是否白名单用户
+func (db *Database) CheckUserInWhitelist(username string) bool {
 	sql := "select id from user_whitelist where is_deleted=0 and username=?"
 
 	result, err := db.GetRows(sql, username)
@@ -15,13 +16,33 @@ func (db *Database) GetUseridByUsername(username string) (userid int, err error)
 	if err == nil && len(result) > 0 {
 		for key := range result[0] {
 			if result[0][key] == "null_val" {
-				userid = 0
+				//userid = 0
+				return false
 			} else {
-				userid, _ = strconv.Atoi(result[0][key])
+				//userid, _ = strconv.Atoi(result[0][key])
+				return true
 			}
 		}
 	}
-	return
+	return false
+}
+
+//检测用户表中用户是否存在
+func (db *Database) CheckUserExists(username string) (bool, error) {
+	sql := "select is_deleted from user_info where username=?"
+
+	result, err := db.GetRows(sql, username)
+	if err == nil && len(result) > 0 {
+		for key := range result[0] {
+			if result[0][key] == "0" {
+				return true, errors.New("user account already exists! ")
+			} else {
+				return true, errors.New("user account already exists,and account is locked! ")
+			}
+		}
+	}
+
+	return false, err
 }
 
 //检查sql explain时扫描的行数
@@ -85,4 +106,14 @@ func (db *Database) GetDbList() (dbList []string, err error) {
 		log.Println(dbList)
 	}
 	return
+}
+
+//执行结果入库
+func (db *Database) InsertResults(vals ...interface{}) error {
+	resutlInsertSql := "insert into user_sqlexec_log(user_id,username,exec_result,reason,sql_rownum,rows_inserted,rows_updated,rows_deleted,recovery_id)values(?,?,?,?,?,?,?,?,?)"
+	_, err := db.AddRows(resutlInsertSql, vals...)
+	if err != nil {
+		return err
+	}
+	return nil
 }

@@ -14,12 +14,10 @@ type UserClaims struct {
 }
 
 //生成token
-func GenToken(username string) (string, error) {
+func GenToken(userinfo *model.User) (string, error) {
 
 	claims := UserClaims{
-		User: model.User{
-			Username: username,
-		},
+		User: *userinfo,
 		RegisteredClaims: jwt.RegisteredClaims{
 			Issuer:    "iamchaos",
 			IssuedAt:  jwt.NewNumericDate(time.Now()),

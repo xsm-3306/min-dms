@@ -17,8 +17,8 @@ func (uh *Userhandler) GetDbList(ctx *gin.Context) {
 
 	log.Println(username, dbnum)
 	//此模块后期可以再加入JWT，传token，解析后再验证token中的用户
-	userid, err := uh.UserService.GetUseridByUsername(username)
-	if err != nil || userid < 1 {
+	userInWhitelist := uh.UserService.CheckUserInWhitelist(username)
+	if !userInWhitelist {
 		msg := "用户无权限"
 		data := gin.H{}
 		response.Failed(ctx, data, msg)

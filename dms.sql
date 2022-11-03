@@ -36,6 +36,7 @@ drop table if exists user_sqlexec_log;
 CREATE TABLE `user_sqlexec_log` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `user_id` int(11) DEFAULT NULL COMMENT 'user id reference tab user_whitelist primary key',
+  `username` varchar(20) DEFAULT NULL,
   `exec_result` varchar(50) DEFAULT NULL COMMENT '执行结果',
   `reason` varchar(100) DEFAULT NULL COMMENT '失败原因',
   `sql_rownum` int(11) DEFAULT NULL,
@@ -46,7 +47,7 @@ CREATE TABLE `user_sqlexec_log` (
   `created` datetime NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),
   KEY `idx_recovery_id` (`recovery_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=40 DEFAULT CHARSET=utf8;
 
 drop table if exists user_auth_token;
 CREATE TABLE `user_authtoken_log` (

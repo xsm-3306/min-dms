@@ -6,8 +6,8 @@ type UserService struct {
 	Db *dao.Database
 }
 
-func (us *UserService) GetUseridByUsername(username string) (userid int, err error) {
-	return us.Db.GetUseridByUsername(username)
+func (us *UserService) CheckUserInWhitelist(username string) bool {
+	return us.Db.CheckUserInWhitelist(username)
 }
 
 func (us *UserService) CheckSqlExplainScanRows(sql string) (scanRows int, err error) {

@@ -77,6 +77,7 @@ func JwtAuthMiddle(corUh *userhandler.Userhandler) func(ctx *gin.Context) {
 		}
 		//解析出来结果之后，保存username，以供上下文使用
 		ctx.Set("username", calims.User.Username)
+		ctx.Set("userid", calims.User.Userid)
 		ctx.Next()
 
 	}

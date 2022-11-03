@@ -28,8 +28,6 @@ func (uh *Userhandler) SqlHandler(ctx *gin.Context) {
 	dbname := ctx.PostForm("dbname")
 	//log.Println(username, sql_str, dbname, dbnum)
 
-	username := ctx.GetString("username") //cros通过后上下文设置了
-
 	var (
 		rowsInserted     int
 		rowsUpdated      int
@@ -39,12 +37,15 @@ func (uh *Userhandler) SqlHandler(ctx *gin.Context) {
 		sqlRownum        int
 		msg              string
 		userid           int
+		username         string
 		err              error
 	)
+	username = ctx.GetString("username") //cros通过后上下文设置了
+	userid = ctx.GetInt("userid")
 
 	//此模块后期可以再加入JWT，传token，解析后再验证token中的用户
-	userid, err = uh.UserService.GetUseridByUsername(username)
-	if err != nil || userid < 1 {
+	userInWhitelist := uh.UserService.CheckUserInWhitelist(username)
+	if !userInWhitelist {
 		msg = "用户无权限"
 		data := gin.H{
 			"err": err,
@@ -53,7 +54,7 @@ func (uh *Userhandler) SqlHandler(ctx *gin.Context) {
 
 		//写执行结果模块
 		execResult = "Failed"
-		InsertResultsErr := uh.UserService.Db.InsertResults(userid, execResult, msg, sqlRownum, rowsInserted, rowsUpdated, rowsDeleted, globalRecoveryId)
+		InsertResultsErr := uh.UserService.Db.InsertResults(userid, username, execResult, msg, sqlRownum, rowsInserted, rowsUpdated, rowsDeleted, globalRecoveryId)
 		if InsertResultsErr != nil {
 			log.Println(InsertResultsErr)
 		}
@@ -72,7 +73,7 @@ func (uh *Userhandler) SqlHandler(ctx *gin.Context) {
 		response.Failed(ctx, data, msg)
 
 		execResult = "Failed"
-		InsertResultsErr := uh.UserService.Db.InsertResults(userid, execResult, msg, sqlRownum, rowsInserted, rowsUpdated, rowsDeleted, globalRecoveryId)
+		InsertResultsErr := uh.UserService.Db.InsertResults(userid, username, execResult, msg, sqlRownum, rowsInserted, rowsUpdated, rowsDeleted, globalRecoveryId)
 		if InsertResultsErr != nil {
 			log.Println(InsertResultsErr)
 		}
@@ -102,7 +103,7 @@ func (uh *Userhandler) SqlHandler(ctx *gin.Context) {
 
 			execResult = "Failed"
 			sqlRownum = i
-			InsertResultsErr := uh.UserService.Db.InsertResults(userid, execResult, msg, sqlRownum, rowsInserted, rowsUpdated, rowsDeleted, globalRecoveryId)
+			InsertResultsErr := uh.UserService.Db.InsertResults(userid, username, execResult, msg, sqlRownum, rowsInserted, rowsUpdated, rowsDeleted, globalRecoveryId)
 			if InsertResultsErr != nil {
 				log.Println(InsertResultsErr)
 			}
@@ -139,7 +140,7 @@ func (uh *Userhandler) SqlHandler(ctx *gin.Context) {
 
 				sqlRownum = i
 				execResult = "Failed"
-				InsertResultsErr := uh.UserService.Db.InsertResults(userid, execResult, msg, sqlRownum, rowsInserted, rowsUpdated, rowsDeleted, globalRecoveryId)
+				InsertResultsErr := uh.UserService.Db.InsertResults(userid, username, execResult, msg, sqlRownum, rowsInserted, rowsUpdated, rowsDeleted, globalRecoveryId)
 				if InsertResultsErr != nil {
 					log.Println(InsertResultsErr)
 				}
@@ -164,7 +165,7 @@ func (uh *Userhandler) SqlHandler(ctx *gin.Context) {
 
 						sqlRownum = i
 						execResult = "Failed"
-						InsertResultsErr := uh.UserService.Db.InsertResults(userid, execResult, msg, sqlRownum, rowsInserted, rowsUpdated, rowsDeleted, globalRecoveryId)
+						InsertResultsErr := uh.UserService.Db.InsertResults(userid, username, execResult, msg, sqlRownum, rowsInserted, rowsUpdated, rowsDeleted, globalRecoveryId)
 						if InsertResultsErr != nil {
 							log.Println(InsertResultsErr)
 						}
@@ -182,7 +183,7 @@ func (uh *Userhandler) SqlHandler(ctx *gin.Context) {
 
 				sqlRownum = i
 				execResult = "Failed"
-				InsertResultsErr := uh.UserService.Db.InsertResults(userid, execResult, msg, sqlRownum, rowsInserted, rowsUpdated, rowsDeleted, globalRecoveryId)
+				InsertResultsErr := uh.UserService.Db.InsertResults(userid, username, execResult, msg, sqlRownum, rowsInserted, rowsUpdated, rowsDeleted, globalRecoveryId)
 				if InsertResultsErr != nil {
 					log.Println(InsertResultsErr)
 				}
@@ -217,7 +218,7 @@ func (uh *Userhandler) SqlHandler(ctx *gin.Context) {
 
 			sqlRownum = i
 			execResult = "Failed"
-			InsertResultsErr := uh.UserService.Db.InsertResults(userid, execResult, msg, sqlRownum, rowsInserted, rowsUpdated, rowsDeleted, globalRecoveryId)
+			InsertResultsErr := uh.UserService.Db.InsertResults(userid, username, execResult, msg, sqlRownum, rowsInserted, rowsUpdated, rowsDeleted, globalRecoveryId)
 			if InsertResultsErr != nil {
 				log.Println(InsertResultsErr)
 			}
@@ -238,7 +239,7 @@ func (uh *Userhandler) SqlHandler(ctx *gin.Context) {
 
 	sqlRownum = len(sqlmap)
 	execResult = "Success"
-	InsertResultsErr := uh.UserService.Db.InsertResults(userid, execResult, msg, sqlRownum, rowsInserted, rowsUpdated, rowsDeleted, globalRecoveryId)
+	InsertResultsErr := uh.UserService.Db.InsertResults(userid, username, execResult, msg, sqlRownum, rowsInserted, rowsUpdated, rowsDeleted, globalRecoveryId)
 	if InsertResultsErr != nil {
 		log.Println(InsertResultsErr)
 	}
