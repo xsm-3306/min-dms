@@ -150,11 +150,13 @@ func (uh *Userhandler) SqlHandler(ctx *gin.Context) {
 			}
 		} else {
 			newsql := common.SqlConvert2Select(sqlmap[i])
-			log.Println(newsql)
+			//log.Println(newsql)
 			resut, err := newUh.UserService.BackUpAndRecovery(newsql)
+			//log.Println("result:", resut)
 			if err == nil {
 				for j := 0; j < len(resut); j++ {
 					jsonResult := utils.Map2Json(resut[j])
+					//log.Println("jsonResult:", jsonResult)
 					err := utils.FileWriter(globalRecoveryId, backupDir, jsonResult)
 					if err != nil {
 						msg = "执行前，写备份数据失败"

@@ -9,6 +9,7 @@ import (
 )
 
 //获取已经配置了的可用的db instance list,并不是查库；而是从初始化的配置文件中读取并返回
+//后期配置库级别权限，可从权限表取数
 func (uh *Userhandler) GetDbInstanceList(ctx *gin.Context) {
 	//username := ctx.PostForm("username")
 
