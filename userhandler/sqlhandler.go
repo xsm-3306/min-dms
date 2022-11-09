@@ -61,6 +61,14 @@ func (uh *Userhandler) SqlHandler(ctx *gin.Context) {
 
 		return
 	}
+	//sql string长度限制，len>6
+	if len(sql_str) <= 6 {
+		msg := "please input correct SQL string"
+		data := gin.H{}
+		response.Failed(ctx, data, msg)
+		ctx.Abort()
+		return
+	}
 
 	//用户验证通过后，流程进入分析器sqlAnalyzer
 	n, reason, isChecked := service.SqlAnalyzer(sql_str)
