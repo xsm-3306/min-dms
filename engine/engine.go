@@ -32,6 +32,7 @@ func InitEngine(engine *gin.Engine) {
 
 	engine.Use(middleware.CrosMiddle())
 	engine.POST("/api/user/login", uh.Login)
+	engine.POST("/api/user/logout", uh.Logout)
 	engine.POST("/api/user/register", uh.Register)
 
 	router := engine.Group("/")

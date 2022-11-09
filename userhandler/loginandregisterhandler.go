@@ -48,6 +48,48 @@ func (uh *Userhandler) Login(ctx *gin.Context) {
 	ctx.Abort()
 }
 
+//登出
+func (uh *Userhandler) Logout(ctx *gin.Context) {
+	token := ctx.Request.Header.Get("Authorization")
+
+	if len(token) <= 7 {
+		msg := "the auth header is empty"
+		data := gin.H{}
+		response.Failed(ctx, data, msg)
+		ctx.Abort()
+		return
+	}
+	token = token[7:]
+	rowsUpdated, err := uh.UserService.Logout(token)
+	if err != nil {
+		data := gin.H{
+			"err": err,
+		}
+		msg := "登出失败"
+		response.Failed(ctx, data, msg)
+		ctx.Abort()
+		return
+	} else {
+		if rowsUpdated == 0 {
+			data := gin.H{
+				"rowsUpdated": rowsUpdated,
+			}
+			msg := "登出失败,不存在登录状态"
+			response.Failed(ctx, data, msg)
+			ctx.Abort()
+			return
+		} else {
+			data := gin.H{
+				"rowsUpdated": rowsUpdated,
+			}
+			msg := "登出成功"
+			response.Success(ctx, data, msg)
+			ctx.Abort()
+			return
+		}
+	}
+}
+
 //用户注册handler
 func (uh *Userhandler) Register(ctx *gin.Context) {
 	var registeruser model.LoginUser

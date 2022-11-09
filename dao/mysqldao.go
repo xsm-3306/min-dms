@@ -63,6 +63,27 @@ func (db *Database) GetRows(sqlstr string, vals ...interface{}) (result []map[st
 	return
 }
 
+//包装一个update rows,返回更新行数
+func (db *Database) UpdateRows(sqlstr string, vals ...interface{}) (int, error) {
+	db.OpenDb()
+	defer db.CloseDb()
+
+	stmt, err := db.Db_con.Prepare(sqlstr)
+	if err != nil {
+		return 0, err
+	}
+	defer stmt.Close()
+
+	result, err := stmt.Exec(vals...)
+	if err != nil {
+		return 0, err
+	}
+	rowsUpdated, _ := result.RowsAffected()
+
+	return int(rowsUpdated), nil
+
+}
+
 //实现一个insert rows功能,返回error及插入结果
 func (db *Database) AddRows(sqlstr string, vals ...interface{}) (int64, error) {
 	db.OpenDb()

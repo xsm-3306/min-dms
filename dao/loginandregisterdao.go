@@ -54,3 +54,12 @@ func (db *Database) AddUser(registeruser *model.LoginUser) error {
 
 	return nil
 }
+
+//用户退出登录，设置token为不可用
+func (db *Database) UpdateTokenTab(token string) (int, error) {
+	sql := "update user_authtoken_log set is_deleted=1 where token_str=?"
+
+	rowsUpdated, err := db.UpdateRows(sql, token)
+
+	return rowsUpdated, err
+}
