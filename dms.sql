@@ -1,6 +1,5 @@
-#######
-table structure file
-#######
+#####table structure file######
+
 
 CREATE DATABASE `dms` /*!40100 DEFAULT CHARACTER SET utf8 */;
 
@@ -17,7 +16,7 @@ CREATE TABLE `user_info` (
 	UNIQUE INDEX `uidx_username` (`username`) USING BTREE
 )
 ENGINE=InnoDB DEFAULT CHARSET=utf8;
-;
+
 
 drop table if exists dms.user_whitelist;
 CREATE TABLE `user_whitelist` (
@@ -29,8 +28,6 @@ CREATE TABLE `user_whitelist` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `uidx_username` (`username`)
 ) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8;
-
-insert into user_whitelist(username,is_deleted)values("admin",0);
 
 drop table if exists user_sqlexec_log;
 CREATE TABLE `user_sqlexec_log` (
@@ -54,7 +51,8 @@ CREATE TABLE `user_authtoken_log` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `token_str` varchar(255) DEFAULT NULL,
   `create_at` datetime NOT NULL DEFAULT current_timestamp() COMMENT '入库时间',
+  `update_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `is_deleted` tinyint(4) NOT NULL DEFAULT 0 COMMENT '1 yes,0 no',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uidx_token` (`token_str`)
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8
+) ENGINE=InnoDB AUTO_INCREMENT=78 DEFAULT CHARSET=utf8;
