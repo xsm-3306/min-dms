@@ -42,7 +42,7 @@ func (uh *Userhandler) Login(ctx *gin.Context) {
 	data := gin.H{
 		"token": token,
 	}
-	msg := ""
+	msg := "登录成功"
 	response.Success(ctx, data, msg)
 
 	ctx.Abort()
